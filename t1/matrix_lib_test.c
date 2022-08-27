@@ -28,21 +28,40 @@ int main (int argc, char **argv) {
 
     // Variáveis =======================================================================================
 
-    int i;
+    int i, j;
+    int tam = 0;
     char strFloats[20];
-    float valFloats[100];
+    float valFloats[1000];
 
-    Matrix matrixA;
-    Matrix matrixB;
-    Matrix matrixC;
+    Matrix *matrixA;
+    Matrix *matrixB;
+    Matrix *matrixC;
 
-    matrixA.height = dimMatrixA_height;
-    matrixA.width = dimMatrixA_width;
-    matrixA.rows = matrixA.height * matrixA.width;
+    // aloca dinamicamente
+    matrixA = (Matrix*)malloc(sizeof(Matrix));
+    if(matrixA == NULL){
+        printf("Erro de memoria insuficiente\n");
+        return 0;
+    }
 
-    matrixB.height = dimMatrixB_height;
-    matrixB.width = dimMatrixB_width;
-    matrixB.rows = dimMatrixB_height * matrixB.width;
+    matrixB = (Matrix*)malloc(sizeof(Matrix));
+    if(matrixB == NULL){
+        printf("Erro de memoria insuficiente\n");
+        return 0;
+    }
+
+    matrixC = (Matrix*)malloc(sizeof(Matrix));
+    if(matrixC == NULL){
+        printf("Erro de memoria insuficiente\n");
+        return 0;
+    }
+
+
+    matrixA->height = dimMatrixA_height;
+    matrixA->width = dimMatrixA_width;
+
+    matrixB->height = dimMatrixB_height;
+    matrixB->width = dimMatrixB_width;
 
     FILE *file_pointer;
 
@@ -52,13 +71,17 @@ int main (int argc, char **argv) {
         exit(1);
     }
 
+    // Leo: parei aqui, pois não consegui entender porque não está atribuindo valor a matrixA->rows[i]
     i = 0;
     while(fgets(strFloats, 20, file_pointer) != NULL) {
-        valFloats[i] = atof(strFloats);
+        matrixA->rows[i] = atof(strFloats);
         i++;
     }
 
-    for(i = 0 ; i < sizeof())
+    tam = matrixA->height * matrixB->width;
+    for(i = 0 ; i < tam ; i++) {
+        printf("%f ", matrixA->rows[i]);
+    }
 
     fclose(file_pointer);
 
