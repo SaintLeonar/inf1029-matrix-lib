@@ -1,1 +1,6 @@
 !*.c
+t1/.vscode/settings.json
+t1/floats_256_2.0f.txt
+t1/.vscode/tasks.json
+t1/main.exe
+t1/matrix_lib_test.exe
