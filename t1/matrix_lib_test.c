@@ -7,6 +7,37 @@ typedef struct {
     float *rows;
 } Matrix;
 
+Matrix *newMatrix (long int height, long int width){
+
+    long int tam = height * width;
+
+
+    Matrix *matrix = (Matrix*) malloc(sizeof(Matrix));
+    if(matrix == NULL){
+        printf("Erro de memoria insuficiente\n");
+        return NULL;
+    }
+
+    matrix->rows = (float *)malloc(tam*sizeof(float));
+    if(matrix->rows == NULL){
+        printf("Erro de memoria insuficiente\n");
+        free(matrix);
+        return NULL;
+    }
+
+    matrix->height = height;
+    matrix->width = width;
+
+    return matrix;
+}
+
+void delMatrix(Matrix *matrix) {
+    if(matrix != NULL) {
+        free(matrix->rows);
+        free(matrix);
+    }
+}
+
 int main (int argc, char **argv) {
 
     // Lê parâmetros de execução =========================================================================
@@ -29,39 +60,14 @@ int main (int argc, char **argv) {
     // Variáveis =======================================================================================
 
     int i, j;
-    int tam = 0;
     char strFloats[20];
-    float valFloats[1000];
 
     Matrix *matrixA;
     Matrix *matrixB;
     Matrix *matrixC;
 
-    // aloca dinamicamente
-    matrixA = (Matrix*)malloc(sizeof(Matrix));
-    if(matrixA == NULL){
-        printf("Erro de memoria insuficiente\n");
-        return 0;
-    }
-
-    matrixB = (Matrix*)malloc(sizeof(Matrix));
-    if(matrixB == NULL){
-        printf("Erro de memoria insuficiente\n");
-        return 0;
-    }
-
-    matrixC = (Matrix*)malloc(sizeof(Matrix));
-    if(matrixC == NULL){
-        printf("Erro de memoria insuficiente\n");
-        return 0;
-    }
-
-
-    matrixA->height = dimMatrixA_height;
-    matrixA->width = dimMatrixA_width;
-
-    matrixB->height = dimMatrixB_height;
-    matrixB->width = dimMatrixB_width;
+    matrixA = newMatrix(dimMatrixA_height, dimMatrixA_width);
+    matrixB = newMatrix(dimMatrixB_height, dimMatrixB_width);
 
     FILE *file_pointer;
 
@@ -71,19 +77,36 @@ int main (int argc, char **argv) {
         exit(1);
     }
 
-    // Leo: parei aqui, pois não consegui entender porque não está atribuindo valor a matrixA->rows[i]
     i = 0;
     while(fgets(strFloats, 20, file_pointer) != NULL) {
         matrixA->rows[i] = atof(strFloats);
         i++;
     }
+    fclose(file_pointer);
 
-    tam = matrixA->height * matrixB->width;
-    for(i = 0 ; i < tam ; i++) {
+    file_pointer = fopen(arqFloats2, "r");
+    if (file_pointer == NULL) {
+        printf("Erro ao tentar abrir o arquivo!");
+        exit(1);
+    }
+
+    i = 0;
+    while(fgets(strFloats, 20, file_pointer) != NULL) {
+        matrixB->rows[i] = atof(strFloats);
+        i++;
+    }
+    fclose(file_pointer);
+
+
+    for(i = 0 ; i < matrixA->height * matrixA->width ; i++) {
         printf("%f ", matrixA->rows[i]);
     }
 
-    fclose(file_pointer);
+    printf("\n");
+
+    for(i = 0 ; i < matrixB->height * matrixB->width ; i++) {
+        printf("%f ", matrixB->rows[i]);
+    }
 
     return 0;
 }
