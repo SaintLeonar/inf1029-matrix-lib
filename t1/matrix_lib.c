@@ -15,28 +15,67 @@ void test_matrix(float result_value, struct matrix *matrix);
 // Codigo 
 int main(){
 
+    // teste matriz 3x3
+    struct matrix matrixA;
+    matrixA.height = 3;
+    matrixA.width = 3;
+    for(int i = 0; i < 9; i++){
+        matrixA.rows[i] = 1; 
+    }
+    printf("Matriz\n");
+    for(int i = 0; i < 9; i++){
+        printf("%f ", matrixA.rows[i]);
+    }
+    printf("\n");
+
+
+    struct matrix matrixB;
+    matrixB.height = 3;
+    matrixB.width = 3;
+    for(int i = 0; i < 9; i++){
+        matrixB.rows[i] = 2; 
+    }
+    printf("Matriz\n");
+    for(int i = 0; i < 9; i++){
+        printf("%f ", matrixB.rows[i]);
+    }
+    printf("\n");
+
+    //scalar_matrix_mult(3.0, &matrixA);
+
+    printf("Matriz\n");
+    for(int i = 0; i < 9; i++){
+        printf("%f ", matrixA.rows[i]);
+    }
+    printf("\n");
+
+    struct matrix matrixC;
+
+    matrix_matrix_mult(&matrixA, &matrixB, &matrixC);
     return 0;
 }
 
 // Funcoes
 
-// Funcao de multiplicação por escalar
+// Funcao de multiplicação por escalar (Falta o retorno 0)
 int scalar_matrix_mult(float scalar_value, struct matrix *matrix){
 
     unsigned long int tam;
     tam = matrix->height * matrix->width;
+    
 
-    // aloca dinamicamente
-    matrix->rows = (float*)malloc(tam*sizeof(float));
-    if(matrix ->rows == NULL){
+    /*float* temp_array;
+    temp_array = (float*)malloc(tam*sizeof(float));
+    if(temp_array == NULL){
         printf("Erro de memoria insuficiente\n");
         return 0;
-    }
+    }*/
 
     // multiplica por escalar
     for(unsigned long int i = 0; i < tam; i++){
         matrix->rows[i] *= scalar_value;
     }
+
     return 1;
 }
 
@@ -46,6 +85,8 @@ int matrix_matrix_mult(struct matrix *matrixA, struct matrix * matrixB, struct m
     unsigned long int tamA, tamB, tamC;
     tamA = matrixA->height * matrixA->width;
     tamC = matrixA->height * matrixB->width;
+
+
 
 
     matrixC->rows = (float*)malloc(tamC*sizeof(float));
@@ -68,7 +109,7 @@ int matrix_matrix_mult(struct matrix *matrixA, struct matrix * matrixB, struct m
                 
                 // Percorre a matrizB
                 for(unsigned long int l = 0; l < matrixB->width; l++){
-                    float valB = matrixB->rows[(k * l) -1];
+                    float valB = matrixB->rows[k * (l - 1)];
                     matrixC->rows[i + l] += valA * valB;
                 }
                 
