@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 typedef struct {
     unsigned long int height;
@@ -14,13 +15,13 @@ Matrix *newMatrix (long int height, long int width){
 
     Matrix *matrix = (Matrix*) malloc(sizeof(Matrix));
     if(matrix == NULL){
-        printf("Erro de memoria insuficiente\n");
+        printf("(Error) Erro de memoria insuficiente\n");
         return NULL;
     }
 
     matrix->rows = (float *)malloc(tam*sizeof(float));
     if(matrix->rows == NULL){
-        printf("Erro de memoria insuficiente\n");
+        printf("(Error) Erro de memoria insuficiente\n");
         free(matrix);
         return NULL;
     }
@@ -29,6 +30,13 @@ Matrix *newMatrix (long int height, long int width){
     matrix->width = width;
 
     return matrix;
+}
+
+bool isValidDimension (long int height, long int width){
+    if(height == width){
+        return true;
+    }
+    return false;
 }
 
 void delMatrix(Matrix *matrix) {
@@ -66,6 +74,11 @@ int main (int argc, char **argv) {
     Matrix *matrixB;
     Matrix *matrixC;
 
+    if(!isValidDimension(dimMatrixA_height,dimMatrixB_height)) {
+        printf("(Error) Dimensões não são válidas\n");
+        return 0;
+    }
+
     matrixA = newMatrix(dimMatrixA_height, dimMatrixA_width);
     matrixB = newMatrix(dimMatrixB_height, dimMatrixB_width);
 
@@ -73,8 +86,8 @@ int main (int argc, char **argv) {
 
     file_pointer = fopen(arqFloats1,"r");
     if (file_pointer == NULL) {
-        printf("Erro ao tentar abrir o arquivo!");
-        exit(1);
+        printf("(Error) Erro ao tentar abrir o arquivo!\n");
+        return 0;
     }
 
     i = 0;
@@ -86,8 +99,8 @@ int main (int argc, char **argv) {
 
     file_pointer = fopen(arqFloats2, "r");
     if (file_pointer == NULL) {
-        printf("Erro ao tentar abrir o arquivo!");
-        exit(1);
+        printf("(Error) Erro ao tentar abrir o arquivo!\n");
+        return 0;
     }
 
     i = 0;
@@ -108,5 +121,7 @@ int main (int argc, char **argv) {
         printf("%f ", matrixB->rows[i]);
     }
 
-    return 0;
+    printf("\n");
+
+    return 1;
 }
