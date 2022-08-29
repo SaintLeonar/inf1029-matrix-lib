@@ -12,7 +12,6 @@ Matrix *newMatrix (long int height, long int width){
 
     long int tam = height * width;
 
-
     Matrix *matrix = (Matrix*) malloc(sizeof(Matrix));
     if(matrix == NULL){
         printf("(Error) Erro de memoria insuficiente\n");
@@ -30,6 +29,14 @@ Matrix *newMatrix (long int height, long int width){
     matrix->width = width;
 
     return matrix;
+}
+
+void initializeMatrix(Matrix *matrix) {
+    long int tam = matrix->height * matrix->width;
+
+    for(int i = 0 ; i < tam ; i++){
+        matrix->rows[i] = 0;
+    }
 }
 
 bool isValidDimension (long int height, long int width){
@@ -81,15 +88,21 @@ int main (int argc, char **argv) {
 
     matrixA = newMatrix(dimMatrixA_height, dimMatrixA_width);
     matrixB = newMatrix(dimMatrixB_height, dimMatrixB_width);
+    matrixC = newMatrix(dimMatrixA_height, dimMatrixB_width);   // Dimensão de C := height de A e width de B
+
+    initializeMatrix(matrixC);
 
     FILE *file_pointer;
 
+    // Le arquivos =======================================================================================
+    
+    // Arquivo 1
     file_pointer = fopen(arqFloats1,"r");
     if (file_pointer == NULL) {
         printf("(Error) Erro ao tentar abrir o arquivo!\n");
         return 0;
     }
-
+    // Popula ->rows
     i = 0;
     while(fgets(strFloats, 20, file_pointer) != NULL) {
         matrixA->rows[i] = atof(strFloats);
@@ -97,12 +110,13 @@ int main (int argc, char **argv) {
     }
     fclose(file_pointer);
 
+    // Arquivo 2
     file_pointer = fopen(arqFloats2, "r");
     if (file_pointer == NULL) {
         printf("(Error) Erro ao tentar abrir o arquivo!\n");
         return 0;
     }
-
+    // Popula ->rows
     i = 0;
     while(fgets(strFloats, 20, file_pointer) != NULL) {
         matrixB->rows[i] = atof(strFloats);
@@ -111,6 +125,7 @@ int main (int argc, char **argv) {
     fclose(file_pointer);
 
 
+    // Teste
     for(i = 0 ; i < matrixA->height * matrixA->width ; i++) {
         printf("%f ", matrixA->rows[i]);
     }
@@ -119,6 +134,12 @@ int main (int argc, char **argv) {
 
     for(i = 0 ; i < matrixB->height * matrixB->width ; i++) {
         printf("%f ", matrixB->rows[i]);
+    }
+
+    printf("\n");
+
+    for(i = 0 ; i < matrixC->height * matrixC->width ; i++) {
+        printf("%f ", matrixC->rows[i]);
     }
 
     printf("\n");
