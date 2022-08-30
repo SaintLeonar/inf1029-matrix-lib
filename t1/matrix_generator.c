@@ -20,7 +20,7 @@ for(int i=0; i<TAM; i++){
 
 FILE * fp;
 
-fp = fopen ("teste.dat", "wb");
+fp = fopen ("matrix.dat", "wb");
    
 fwrite(vet, sizeof(vet), TAM, fp);
 fclose(fp);
