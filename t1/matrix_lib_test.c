@@ -53,6 +53,12 @@ void delMatrix(Matrix *matrix) {
     }
 }
 
+void copyFloatArray (float *arr1, float *arr2, int tam) {
+    for(int i = 0 ; i < tam ; i++) {
+        arr1[i] = arr2[i];
+    }
+}
+
 int main (int argc, char **argv) {
 
     // Lê parâmetros de execução =========================================================================
@@ -74,8 +80,9 @@ int main (int argc, char **argv) {
 
     // Variáveis =======================================================================================
 
-    int i, j;
-    char strFloats[20];
+    int i, tam;
+    float floatsA[dimMatrixA_height*dimMatrixA_width]; // ARRAYS AUXILIARES PARA LER O ARQUIVO BINARIO NO fread();
+    float floatsB[dimMatrixB_height*dimMatrixB_width]; // POSTERIORMENTE, DEVE SER USADO PARA POPULAR matrix->rows
 
     Matrix *matrixA;
     Matrix *matrixB;
@@ -90,6 +97,8 @@ int main (int argc, char **argv) {
     matrixB = newMatrix(dimMatrixB_height, dimMatrixB_width);
     matrixC = newMatrix(dimMatrixA_height, dimMatrixB_width);   // Dimensão de C := height de A e width de B
 
+    tam = matrixC->height * matrixC->width;
+
     initializeMatrix(matrixC);
 
     FILE *file_pointer;
@@ -97,49 +106,63 @@ int main (int argc, char **argv) {
     // Le arquivos =======================================================================================
     
     // Arquivo 1
-    file_pointer = fopen(arqFloats1,"r");
+    file_pointer = fopen(arqFloats1,"rb");
     if (file_pointer == NULL) {
         printf("(Error) Erro ao tentar abrir o arquivo!\n");
         return 0;
     }
     // Popula ->rows
-    i = 0;
-    while(fgets(strFloats, 20, file_pointer) != NULL) {
-        matrixA->rows[i] = atof(strFloats);
-        i++;
-    }
+    fread(floatsA, sizeof(floatsA), 1, file_pointer);
+    copyFloatArray(matrixA->rows,floatsA,tam);
     fclose(file_pointer);
 
     // Arquivo 2
-    file_pointer = fopen(arqFloats2, "r");
+    file_pointer = fopen(arqFloats2, "rb");
     if (file_pointer == NULL) {
         printf("(Error) Erro ao tentar abrir o arquivo!\n");
         return 0;
     }
     // Popula ->rows
-    i = 0;
-    while(fgets(strFloats, 20, file_pointer) != NULL) {
-        matrixB->rows[i] = atof(strFloats);
-        i++;
-    }
+    fread(floatsB, sizeof(floatsB), 1, file_pointer);
+    copyFloatArray(matrixB->rows,floatsB,tam);
     fclose(file_pointer);
 
+    // Multiplicação Escalar ==================================================================================
 
-    // Teste
-    for(i = 0 ; i < matrixA->height * matrixA->width ; i++) {
-        printf("%f ", matrixA->rows[i]);
+    // chamar aqui
+
+    // Escreve arquivo binário
+    file_pointer = fopen(arqResult1, "wb");
+    if (file_pointer == NULL) {
+        printf("(Error) Erro ao tentar criar o arquivo!\n");
+        return 0;
     }
 
-    printf("\n");
+    float arrayAux[tam]; // Array auxiliar para o fwrite();
 
-    for(i = 0 ; i < matrixB->height * matrixB->width ; i++) {
-        printf("%f ", matrixB->rows[i]);
+    for(i = 0 ; i < tam ; i++){
+        arrayAux[i] = matrixA->rows[i];
     }
 
-    printf("\n");
+    fwrite(arrayAux, sizeof(arrayAux), 1 , file_pointer);
+    fclose(file_pointer);
 
-    for(i = 0 ; i < matrixC->height * matrixC->width ; i++) {
-        printf("%f ", matrixC->rows[i]);
+    // Le arquivo binario
+    file_pointer = fopen(arqResult1, "rb");
+    if (file_pointer == NULL) {
+        printf("(Error) Erro ao tentar criar o arquivo!\n");
+        return 0;
+    }
+
+    // SAIDA
+
+    float matrixTest[tam]; // Array auxiliar para o fread();
+    fread(matrixTest, sizeof(matrixTest), 1, file_pointer);
+
+    fclose(file_pointer);
+
+    for(i = 0 ; i < tam ; i++) {
+        printf("%f ", matrixTest[i]);
     }
 
     printf("\n");
