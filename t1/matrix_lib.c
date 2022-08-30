@@ -1,27 +1,79 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "matrix_lib.h"
+//#include "timer.h"
 
-struct matrix {
-unsigned long int height;
-unsigned long int width;
-float *rows;
-};
+// ------------------- Funcoes -------------------
 
-// Cabeca das Funcoes 
-int scalar_matrix_mult(float scalar_value, struct matrix *matrix);
-int matrix_matrix_mult(struct matrix *matrixA, struct matrix * matrixB, struct matrix * matrixC);
-void test_matrix(float result_value, struct matrix *matrix);
-void show_matrix(struct matrix *matrix, char title);
+// Funcao de multiplicação por escalar (Falta o retorno 0)
+int scalar_matrix_mult(float scalar_value, struct matrix *matrix){
 
-// Codigo 
-int main(){
+    // declaração de variaveis
+    unsigned long int tam;
+    tam = matrix->height * matrix->width;
+    
+    // Percorre o vetor e multiplica pelo escalar
+    for(unsigned long int i = 0; i < tam; i++){
+        matrix->rows[i] *= scalar_value;
+    }
 
-    // teste matriz 3x3
-    /*
+    return 1;
+}
+
+// Funcao de multiplicacao por matriz
+int matrix_matrix_mult(struct matrix *matrixA, struct matrix * matrixB, struct matrix * matrixC){
+
+    // declaração das variaveis das matrizes A e B
+    unsigned long int tamA, tamB, tamC;
+    tamA = matrixA->height * matrixA->width;
+    tamB = matrixB->height * matrixB->width;
+    tamC = matrixA->height * matrixB->width;
+    
+    // testa se as structs estão preenchidas
+    if(tamA == 0 || matrixA->rows == 'NULL'){
+        printf("Erro na struct da matriz A");
+        return 0;
+    }
+    if(tamB == 0 || matrixB->rows == 'NULL'){
+        printf("Erro na struct da matriz B");
+        return 0;
+    }
+
+    // Percorre a matriz C
+    for(unsigned long i = 0; i < tamC; i++){
+        matrixC->rows[i] = 0;
+        for(unsigned long j = 0; j < matrixA->width; j++)
+            matrixC->rows[i] += matrixA->rows[matrixA->width * (i/ matrixA->height) + j] * matrixB->rows[matrixA->height* (i%matrixA->height) + j];
+            
+    }
+    //show_matrix(&matrixC, 'C');
+
+    return 1;
+ }
+
+
+
+
+
+
+// ------------------- Testes Comentados -------------------
+
+// ------------------- Cabeca das Funcoes -------------------
+//int scalar_matrix_mult(float scalar_value, struct matrix *matrix);
+//int matrix_matrix_mult(struct matrix *matrixA, struct matrix * matrixB, struct matrix * matrixC);
+//void test_matrix(float result_value, struct matrix *matrix);
+//void show_matrix(struct matrix *matrix, char title);
+
+/*int main(){
+
+    struct timeval start, stop, overall_t1, overall_t2;
+    // Mark overall start time
+    gettimeofday(&overall_t1, NULL);
+
     struct matrix matrixA, matrixB;
 
-    printf("%p - A\n", matrixA.rows);
-    printf("%p - B\n", matrixB.rows);
+    //printf("%p - A\n", matrixA.rows);
+    //printf("%p - B\n", matrixB.rows);
 
     matrixA.rows = (float*)malloc(9*sizeof(float));
     if(matrixA.rows == NULL){
@@ -66,78 +118,64 @@ int main(){
 
     struct matrix matrixC;
 
-    matrix_matrix_mult(&matrixA, &matrixB, &matrixC);*/
-
-    return 0;
-}
-
-// Funcoes
-
-// Funcao de multiplicação por escalar (Falta o retorno 0)
-int scalar_matrix_mult(float scalar_value, struct matrix *matrix){
-
-    // declaração de variaveis
-    unsigned long int tam;
-    tam = matrix->height * matrix->width;
-    
-    // Percorre o vetor e multiplica pelo escalar
-    for(unsigned long int i = 0; i < tam; i++){
-        matrix->rows[i] *= scalar_value;
-    }
-
-    return 1;
-}
-
-// Funcao de multiplicacao por matriz
-int matrix_matrix_mult(struct matrix *matrixA, struct matrix * matrixB, struct matrix * matrixC){
-
-    // declaração das variaveis das matrizes A e B
-    unsigned long int tamA, tamB;
-    tamA = matrixA->height * matrixA->width;
-    tamB = matrixB->height * matrixB->width;
-    
-    // testa se as structs estão preenchidas
-    if(tamA == 0 || matrixA->rows == 'NULL'){
-        printf("Erro na struct da matriz A");
-        return 0;
-    }
-    if(tamB == 0 || matrixB->rows == 'NULL'){
-        printf("Erro na struct da matriz B");
-        return 0;
-    }
-
-    // monta a matriz C
-    unsigned long int tamC;
-    tamC = matrixA->height * matrixB->width;
-    
-    /*matrixC->height = matrixA->height;
-    matrixC->width = matrixB->width;
+    //matrix_matrix_mult(&matrixA, &matrixB, &matrixC);
 
 
+    printf("--------- ini ---------\n");
 
-    matrixC->rows = (float*)malloc(tamC*sizeof(float));
-    if(matrixC->rows == NULL){
-        printf("Erro de memoria insuficiente\n");
-        return 0;
-    }
+    // Mark init start time
+    gettimeofday(&start, NULL);
 
-    printf("Matriz C\n");*/
+    scalar_matrix_mult(1.0, &matrixA);
 
-    // Percorre a matriz C
-    for(unsigned long i = 0; i < tamC; i++){
-        matrixC->rows[i] = 0;
-        for(unsigned long j = 0; j < matrixA->width; j++){
-            matrixC->rows[i] += matrixA->rows[matrixA->width * (i/ matrixA->height) + j] * matrixB->rows[matrixA->height* (i%matrixA->height) + j];
-            printf("%f ", matrixC->rows[i]);
+    // printa a matriz
+    printf("Matriz A\n");
+    for(int i = 0; i < 9; i++){
+        if(i > 256){
+            printf(" -- A matriz passou do limite de 256 -- ");
+            break;
         }
+        printf("%f ", matrixA.rows[i]);
     }
-    show_matrix(&matrixC, 'C');
+    printf("\n");
 
-    return 1;
- }
+    // Mark init stop time
+    gettimeofday(&stop, NULL);
+    // Show init exec time
+    printf("Init time: %f ms\n", timedifference_msec(start, stop));
+
+    printf("----------------\n");
+
+
+    // Mark init start time
+    gettimeofday(&start, NULL);
+
+    matrix_matrix_mult(&matrixA, &matrixB, &matrixC);
+
+    // printa a matriz
+    printf("Matriz C\n");
+    for(int i = 0; i < 9; i++){
+        printf("%f ", matrixC.rows[i]);
+    }
+    printf("\n");
+
+    // Mark init stop time
+    gettimeofday(&stop, NULL);
+    // Show init exec time
+    printf("Init time: %f ms\n", timedifference_msec(start, stop));
+
+
+     // Mark overall stop time
+    gettimeofday(&overall_t2, NULL);
+    // Show elapsed overall time
+    printf("Overall time: %f ms\n", timedifference_msec(overall_t1, overall_t2));
+    return 0;
+}*/
+
+
 
 // Funcao para testar matriz
-void test_matrix(float result_value, struct matrix *matrix){
+/*void test_matrix(float result_value, struct matrix *matrix){
 
     unsigned long int tam;
     tam = matrix->height * matrix->width;
@@ -151,14 +189,14 @@ void test_matrix(float result_value, struct matrix *matrix){
         }
     }
     printf("Matrix funcionando como o esperado\n");
-}
+}*/
 
-void show_matrix(struct matrix *matrix, char title){
+/*void show_matrix(struct matrix *matrix, char title){
 
     unsigned long int tam;
     tam = matrix->height * matrix->width;
 
-    printf("---------- matrix %c ----------\n");
+    printf("---------- matrix %c ----------\n", title);
 
     for(int i = 0; i < tam; i++){
         if(i > 256){
@@ -168,4 +206,4 @@ void show_matrix(struct matrix *matrix, char title){
         printf("%f ",matrix->rows[i]);
     }
     printf("\n");
-}
+}*/
