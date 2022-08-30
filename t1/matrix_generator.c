@@ -24,7 +24,7 @@ fp = fopen ("matrix.dat", "wb");
    
 fwrite(vet, sizeof(vet), TAM, fp);
 fclose(fp);
-printf("fim\n");
+printf("-- Matriz Gerada --\n");
 
 
 
