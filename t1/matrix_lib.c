@@ -16,30 +16,54 @@ void test_matrix(float result_value, struct matrix *matrix);
 int main(){
 
     // teste matriz 3x3
-    struct matrix matrixA;
+    struct matrix matrixA, matrixB;
+
+    printf("%p - A\n", matrixA.rows);
+    printf("%p - B\n", matrixB.rows);
+
+
+    matrixA.rows = (float*)malloc(9*sizeof(float));
+    if(matrixA.rows == NULL){
+        printf("Erro de memoria insuficiente\n");
+        return 0;
+    }
+
+
     matrixA.height = 3;
     matrixA.width = 3;
     for(int i = 0; i < 9; i++){
         matrixA.rows[i] = 1; 
     }
+
+    matrixB.rows = (float*)malloc(9*sizeof(float));
+    if(matrixB.rows == NULL){
+        printf("Erro de memoria insuficiente\n");
+        return 0;
+    }
+
+
     printf("Matriz\n");
     for(int i = 0; i < 9; i++){
         printf("%f ", matrixA.rows[i]);
     }
     printf("\n");
 
-
-    struct matrix matrixB;
     matrixB.height = 3;
     matrixB.width = 3;
+
+
+    
+
+
     for(int i = 0; i < 9; i++){
-        matrixB.rows[i] = 2; 
-    }
-    printf("Matriz\n");
-    for(int i = 0; i < 9; i++){
+        matrixB.rows[i] = 2;
         printf("%f ", matrixB.rows[i]);
     }
     printf("\n");
+    
+    
+
+
 
     //scalar_matrix_mult(3.0, &matrixA);
 
@@ -86,36 +110,30 @@ int matrix_matrix_mult(struct matrix *matrixA, struct matrix * matrixB, struct m
     tamA = matrixA->height * matrixA->width;
     tamC = matrixA->height * matrixB->width;
 
-
-
+    // monta a matriz C
+    matrixC->height = matrixA->height;
+    matrixC->width = matrixB->width;
 
     matrixC->rows = (float*)malloc(tamC*sizeof(float));
     if(matrixC->rows == NULL){
         printf("Erro de memoria insuficiente\n");
         return 0;
     }
+    // inicializa a matriz com zeros
+    printf("Matriz C\n");
 
     // Percorre a matriz C
     for(unsigned long i = 0; i < tamC; i++){
-
-        //Percorre a matriz A
-        for(unsigned long int j = 0; j < tamA; j++){
-
-            // passa o valor da matrizA para valA (multiplicar a matriz B)
-            float valA = matrixA->rows[j];
-
-            // Percorre as colunas da matriz B para multiplicação
-            for(unsigned long int k = 0; k < matrixB->height; k++){
-                
-                // Percorre a matrizB
-                for(unsigned long int l = 0; l < matrixB->width; l++){
-                    float valB = matrixB->rows[k * (l - 1)];
-                    matrixC->rows[i + l] += valA * valB;
-                }
-                
-            }
+        matrixC->rows[i] = 0;
+        for(unsigned long j = 0; j < matrixA->width; j++){
+            matrixC->rows[i] += matrixA->rows[matrixA->width * (i/ matrixA->height) + j] * matrixB->rows[matrixA->height* (i%matrixA->height) + j];
+            printf("%f ", matrixC->rows[i]);
         }
     }
+    printf("aaa\n");
+    for(int i = 0; i < tamC; i++)
+        printf("%f ",matrixC->rows[i]);
+    printf("\n");
     return 1;
  }
 
