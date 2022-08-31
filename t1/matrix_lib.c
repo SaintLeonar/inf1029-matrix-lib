@@ -1,3 +1,9 @@
+/**
+* @authors Leonardo Abreu Santos (1612734) e Luiz Felipe da Silva Seibel (2110799)
+*
+*
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "matrix_lib.h"
@@ -6,7 +12,7 @@
 // ------------------- Funcoes -------------------
 
 // Funcao de multiplicação por escalar (Falta o retorno 0)
-int scalar_matrix_mult(float scalar_value, struct matrix *matrix){
+int scalar_matrix_mult(float scalar_value, Matrix *matrix){
 
     // declaração de variaveis
     unsigned long int tam;
@@ -21,7 +27,7 @@ int scalar_matrix_mult(float scalar_value, struct matrix *matrix){
 }
 
 // Funcao de multiplicacao por matriz
-int matrix_matrix_mult(struct matrix *matrixA, struct matrix * matrixB, struct matrix * matrixC){
+int matrix_matrix_mult(Matrix *matrixA, Matrix * matrixB, Matrix * matrixC){
 
     // declaração das variaveis das matrizes A e B
     unsigned long int tamA, tamB, tamC;
@@ -30,11 +36,11 @@ int matrix_matrix_mult(struct matrix *matrixA, struct matrix * matrixB, struct m
     tamC = matrixA->height * matrixB->width;
     
     // testa se as structs estão preenchidas
-    if(tamA == 0 || matrixA->rows == 'NULL'){
+    if(tamA == 0 || matrixA->rows == NULL){
         printf("Erro na struct da matriz A");
         return 0;
     }
-    if(tamB == 0 || matrixB->rows == 'NULL'){
+    if(tamB == 0 || matrixB->rows == NULL){
         printf("Erro na struct da matriz B");
         return 0;
     }
@@ -59,10 +65,10 @@ int matrix_matrix_mult(struct matrix *matrixA, struct matrix * matrixB, struct m
 // ------------------- Testes Comentados -------------------
 
 // ------------------- Cabeca das Funcoes -------------------
-//int scalar_matrix_mult(float scalar_value, struct matrix *matrix);
-//int matrix_matrix_mult(struct matrix *matrixA, struct matrix * matrixB, struct matrix * matrixC);
-//void test_matrix(float result_value, struct matrix *matrix);
-//void show_matrix(struct matrix *matrix, char title);
+//int scalar_matrix_mult(float scalar_value, Matrix *matrix);
+//int matrix_matrix_mult(Matrix *matrixA, Matrix * matrixB, Matrix * matrixC);
+//void test_matrix(float result_value, Matrix *matrix);
+//void show_matrix(Matrix *matrix, char title);
 
 /*int main(){
 
@@ -70,7 +76,7 @@ int matrix_matrix_mult(struct matrix *matrixA, struct matrix * matrixB, struct m
     // Mark overall start time
     gettimeofday(&overall_t1, NULL);
 
-    struct matrix matrixA, matrixB;
+    Matrix matrixA, matrixB;
 
     //printf("%p - A\n", matrixA.rows);
     //printf("%p - B\n", matrixB.rows);
@@ -116,7 +122,7 @@ int matrix_matrix_mult(struct matrix *matrixA, struct matrix * matrixB, struct m
     }
     printf("\n");
 
-    struct matrix matrixC;
+    Matrix matrixC;
 
     //matrix_matrix_mult(&matrixA, &matrixB, &matrixC);
 
@@ -175,7 +181,7 @@ int matrix_matrix_mult(struct matrix *matrixA, struct matrix * matrixB, struct m
 
 
 // Funcao para testar matriz
-/*void test_matrix(float result_value, struct matrix *matrix){
+/*void test_matrix(float result_value, Matrix *matrix){
 
     unsigned long int tam;
     tam = matrix->height * matrix->width;
@@ -191,7 +197,7 @@ int matrix_matrix_mult(struct matrix *matrixA, struct matrix * matrixB, struct m
     printf("Matrix funcionando como o esperado\n");
 }*/
 
-/*void show_matrix(struct matrix *matrix, char title){
+/*void show_matrix(Matrix *matrix, char title){
 
     unsigned long int tam;
     tam = matrix->height * matrix->width;
