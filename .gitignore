@@ -5,3 +5,10 @@ t1/.vscode/tasks.json
 t1/main.exe
 t1/matrix_lib_test.exe
 t1/floats_256_5.0f.txt
+t1/float_1.0.dat
+t1/float_2.0.dat
+t1/main
+*.dat
+*.txt
+t2/main
+*.exe
