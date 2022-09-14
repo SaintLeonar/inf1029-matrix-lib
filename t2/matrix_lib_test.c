@@ -5,7 +5,7 @@
 #include "matrix_lib.h"
 #include "timer.h"
 
-Matrix *newMatrix (long int height, long int width){
+Matrix *newMatrix (long int height, long int width, long unsigned int N){
 
     long int tam = height * width;
 
@@ -15,7 +15,7 @@ Matrix *newMatrix (long int height, long int width){
         return NULL;
     }
 
-    matrix->rows = (float *)malloc(tam*sizeof(float));
+    matrix->rows = (float*)aligned_alloc(32, N*sizeof(float));
     if(matrix->rows == NULL){
         printf("(Error) Erro de memoria insuficiente\n");
         free(matrix);
@@ -78,33 +78,33 @@ int main (int argc, char **argv) {
     struct timeval start, stop, overall_t1, overall_t2;
     gettimeofday(&overall_t1, NULL);
 
+    long unsigned int N = 1<<22;
+
     // Variáveis =======================================================================================
     unsigned long int tam, i;
-    float* floatsA; 
-    floatsA = (float*) malloc(dimMatrixA_height*dimMatrixA_width*sizeof(float)); // ARRAYS AUXILIARES PARA LER O ARQUIVO BINARIO NO fread();
-    float* floatsB;
-    floatsB = (float*) malloc(dimMatrixB_height*dimMatrixB_width*sizeof(float)); // POSTERIORMENTE, DEVE SER USADO PARA POPULAR matrix->rows
+
+    float *floatsA =  (float*)aligned_alloc(32, N*sizeof(float));
+    float *floatsB =  (float*)aligned_alloc(32, N*sizeof(float));
+    float *floatsC =  (float*)aligned_alloc(32, N*sizeof(float));
 
     Matrix *matrixA;
     Matrix *matrixB;
     Matrix *matrixC;
 
-    __m256 _matrixA;
-    __m256 _matrixB;
-    __m256 _matrixC = _mm256_setzero_ps ();
+    __m256 _matrixA_rows;
+    __m256 _matrixB_rows;
+    __m256 _matrixC_rows = _mm256_setzero_ps ();
 
     if(!isValidDimension(dimMatrixA_height,dimMatrixB_height)) {
         printf("(Error) Dimensões não são válidas\n");
         return 0;
     }
 
-    matrixA = newMatrix(dimMatrixA_height, dimMatrixA_width);
-    matrixB = newMatrix(dimMatrixB_height, dimMatrixB_width);
-    matrixC = newMatrix(dimMatrixA_height, dimMatrixB_width);   // Dimensão de C := height de A e width de B
+    matrixA = newMatrix(dimMatrixA_height, dimMatrixA_width, N);
+    matrixB = newMatrix(dimMatrixB_height, dimMatrixB_width, N);
+    matrixC = newMatrix(dimMatrixA_height, dimMatrixB_width, N);   // Dimensão de C := height de A e width de B
 
     tam = matrixC->height * matrixC->width;
-
-    initializeMatrix(matrixC);
 
     FILE *file_pointer;
 
@@ -119,6 +119,7 @@ int main (int argc, char **argv) {
     // Popula ->rows
     fread(floatsA, sizeof(floatsA), matrixA->height*matrixA->width, file_pointer);
     copyFloatArray(matrixA->rows,floatsA,tam);
+    _matrixA_rows = _mm256_load_ps(matrixA->rows);
     fclose(file_pointer);
 
     // Arquivo 2
@@ -130,36 +131,39 @@ int main (int argc, char **argv) {
     // Popula ->rows
     fread(floatsB, sizeof(floatsB), matrixB->height*matrixB->width, file_pointer);
     copyFloatArray(matrixB->rows,floatsB,tam);
+    _matrixB_rows = _mm256_load_ps(matrixB->rows);
     fclose(file_pointer);
 
     // Printa Matrizes ========================================================================================
 
-/*
+    float* f = (float*)&_matrixA_rows;
+
     printf("--------Matriz A--------\n");
-    for(int i = 0; i < matrixA->width * matrixA->height; i++){
+    for(int i = 0; i < 64; i++){
         if(i > 256){
             printf(" -- A matriz passou do limite de 256 -- ");
             break;
         }
-        printf("%.1f ", matrixA->rows[i]);
+        printf("%.1f ", f[i]);
     }
     printf("\n");
 
-    printf("--------Matriz B--------\n");
-    for(int i = 0; i < matrixB->width * matrixB->height; i++){
+    f = (float*)&_matrixB_rows;
+
+    printf("--------Matriz A--------\n");
+    for(int i = 0; i < 64; i++){
         if(i > 256){
             printf(" -- A matriz passou do limite de 256 -- ");
             break;
         }
-        printf("%.1f ", matrixB->rows[i]);
+        printf("%.1f ", f[i]);
     }
     printf("\n");
-*/
 
-    float* f = (float*)&_matrixC;
+    f = (float*)&_matrixC_rows;
 
     printf("--------Matriz C--------\n");
-    for(int i = 0; i < matrixC->width * matrixC->height; i++){
+    for(int i = 0; i < 64; i++){
         if(i > 256){
             printf(" -- A matriz passou do limite de 256 -- ");
             break;
