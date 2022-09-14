@@ -5,9 +5,9 @@
 #include "matrix_lib.h"
 #include "timer.h"
 
-Matrix *newMatrix (long int height, long int width, long unsigned int N){
+Matrix *newMatrix (long int height, long int width){
 
-    long int tam = height * width;
+    long unsigned int tam = height * width;
 
     Matrix *matrix = (Matrix*) malloc(sizeof(Matrix));
     if(matrix == NULL){
@@ -15,7 +15,7 @@ Matrix *newMatrix (long int height, long int width, long unsigned int N){
         return NULL;
     }
 
-    matrix->rows = (float*)aligned_alloc(32, N*sizeof(float));
+    matrix->rows = (float*)aligned_alloc(32, tam*sizeof(float));
     if(matrix->rows == NULL){
         printf("(Error) Erro de memoria insuficiente\n");
         free(matrix);
@@ -28,11 +28,10 @@ Matrix *newMatrix (long int height, long int width, long unsigned int N){
     return matrix;
 }
 
-void initializeMatrix(Matrix *matrix) {
-    long int tam = matrix->height * matrix->width;
-
+void initializeMatrix(__m256 *_matrix_rows, long unsigned int tam) {
     for(int i = 0 ; i < tam ; i++){
-        matrix->rows[i] = 0;
+        printf("%d", i);
+        _matrix_rows[i] = _mm256_setzero_ps ();
     }
 }
 
@@ -78,33 +77,31 @@ int main (int argc, char **argv) {
     struct timeval start, stop, overall_t1, overall_t2;
     gettimeofday(&overall_t1, NULL);
 
-    long unsigned int N = 1<<22;
-
     // Variáveis =======================================================================================
-    unsigned long int tam, i;
-
-    float *floatsA =  (float*)aligned_alloc(32, N*sizeof(float));
-    float *floatsB =  (float*)aligned_alloc(32, N*sizeof(float));
-    float *floatsC =  (float*)aligned_alloc(32, N*sizeof(float));
+    unsigned long int tamA, tamB, tamC, tam, i;
 
     Matrix *matrixA;
     Matrix *matrixB;
     Matrix *matrixC;
-
-    __m256 _matrixA_rows;
-    __m256 _matrixB_rows;
-    __m256 _matrixC_rows = _mm256_setzero_ps ();
 
     if(!isValidDimension(dimMatrixA_height,dimMatrixB_height)) {
         printf("(Error) Dimensões não são válidas\n");
         return 0;
     }
 
-    matrixA = newMatrix(dimMatrixA_height, dimMatrixA_width, N);
-    matrixB = newMatrix(dimMatrixB_height, dimMatrixB_width, N);
-    matrixC = newMatrix(dimMatrixA_height, dimMatrixB_width, N);   // Dimensão de C := height de A e width de B
+    matrixA = newMatrix(dimMatrixA_height, dimMatrixA_width);
+    matrixB = newMatrix(dimMatrixB_height, dimMatrixB_width);
+    matrixC = newMatrix(dimMatrixA_height, dimMatrixB_width);   // Dimensão de C := height de A e width de B
 
-    tam = matrixC->height * matrixC->width;
+    tamA = matrixA->height * matrixA->width;
+    tamB = matrixB->height * matrixB->width;
+    tamC = matrixA->height * matrixB->width;
+
+    __m256 _matrixA_rows[tamA/8];
+    __m256 _matrixB_rows[tamB/8];
+    __m256 _matrixC_rows[tamC/8]; 
+
+    initializeMatrix(_matrixC_rows, tamC/8);
 
     FILE *file_pointer;
 
@@ -117,9 +114,8 @@ int main (int argc, char **argv) {
         return 0;
     }
     // Popula ->rows
-    fread(floatsA, sizeof(floatsA), matrixA->height*matrixA->width, file_pointer);
-    copyFloatArray(matrixA->rows,floatsA,tam);
-    _matrixA_rows = _mm256_load_ps(matrixA->rows);
+    fread(matrixA->rows, sizeof(matrixA->rows), matrixA->height*matrixA->width, file_pointer);
+    //_matrixA_rows = _mm256_load_ps(matrixA->rows);
     fclose(file_pointer);
 
     // Arquivo 2
@@ -129,15 +125,14 @@ int main (int argc, char **argv) {
         return 0;
     }
     // Popula ->rows
-    fread(floatsB, sizeof(floatsB), matrixB->height*matrixB->width, file_pointer);
-    copyFloatArray(matrixB->rows,floatsB,tam);
-    _matrixB_rows = _mm256_load_ps(matrixB->rows);
+    fread(matrixB->rows, sizeof(matrixB->rows), matrixB->height*matrixB->width, file_pointer);
+    //_matrixB_rows = _mm256_load_ps(matrixB->rows);
     fclose(file_pointer);
 
     // Printa Matrizes ========================================================================================
 
-    float* f = (float*)&_matrixA_rows;
-
+    float* f = (float*)&_matrixC_rows;
+/*
     printf("--------Matriz A--------\n");
     for(int i = 0; i < 64; i++){
         if(i > 256){
@@ -150,7 +145,7 @@ int main (int argc, char **argv) {
 
     f = (float*)&_matrixB_rows;
 
-    printf("--------Matriz A--------\n");
+    printf("--------Matriz B--------\n");
     for(int i = 0; i < 64; i++){
         if(i > 256){
             printf(" -- A matriz passou do limite de 256 -- ");
@@ -161,7 +156,7 @@ int main (int argc, char **argv) {
     printf("\n");
 
     f = (float*)&_matrixC_rows;
-
+*/
     printf("--------Matriz C--------\n");
     for(int i = 0; i < 64; i++){
         if(i > 256){
@@ -170,7 +165,7 @@ int main (int argc, char **argv) {
         }
         printf("%.1f ", f[i]);
     }
-    printf("\n");
+    printf("aqui\n");
 
 
     // Multiplicação Escalar ==================================================================================
@@ -280,10 +275,5 @@ int main (int argc, char **argv) {
     printf("Overall time: %f ms\n", timedifference_msec(overall_t1, overall_t2));
 
 */
-
-    delMatrix(matrixA);
-    delMatrix(matrixB);
-    delMatrix(matrixC);
-
     return 1;
 }
