@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <immintrin.h>
 #include "matrix_lib.h"
 #include "timer.h"
 
@@ -88,6 +89,10 @@ int main (int argc, char **argv) {
     Matrix *matrixB;
     Matrix *matrixC;
 
+    __m256 _matrixA;
+    __m256 _matrixB;
+    __m256 _matrixC = _mm256_setzero_ps ();
+
     if(!isValidDimension(dimMatrixA_height,dimMatrixB_height)) {
         printf("(Error) Dimensões não são válidas\n");
         return 0;
@@ -129,6 +134,7 @@ int main (int argc, char **argv) {
 
     // Printa Matrizes ========================================================================================
 
+/*
     printf("--------Matriz A--------\n");
     for(int i = 0; i < matrixA->width * matrixA->height; i++){
         if(i > 256){
@@ -148,6 +154,9 @@ int main (int argc, char **argv) {
         printf("%.1f ", matrixB->rows[i]);
     }
     printf("\n");
+*/
+
+    float* f = (float*)&_matrixC;
 
     printf("--------Matriz C--------\n");
     for(int i = 0; i < matrixC->width * matrixC->height; i++){
@@ -155,11 +164,14 @@ int main (int argc, char **argv) {
             printf(" -- A matriz passou do limite de 256 -- ");
             break;
         }
-        printf("%.1f ", matrixC->rows[i]);
+        printf("%.1f ", f[i]);
     }
     printf("\n");
 
+
     // Multiplicação Escalar ==================================================================================
+
+/*
 
     gettimeofday(&start, NULL);
     if(scalar_matrix_mult(valorEscalar, matrixA) == 0) {
@@ -197,6 +209,8 @@ int main (int argc, char **argv) {
 
     fwrite(arrayAux1, sizeof(arrayAux1), 1024 , file_pointer);
     fclose(file_pointer);
+
+
 
     // Multiplicação de Matrizes ======================================================================
 
@@ -260,6 +274,8 @@ int main (int argc, char **argv) {
     gettimeofday(&overall_t2, NULL);
     // Show elapsed overall time
     printf("Overall time: %f ms\n", timedifference_msec(overall_t1, overall_t2));
+
+*/
 
     delMatrix(matrixA);
     delMatrix(matrixB);
