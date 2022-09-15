@@ -139,7 +139,7 @@ int main (int argc, char **argv) {
     float* f = (float*)&_matrixA_rows;
 
     printf("--------Matriz A--------\n");
-    for(int i = 0; i < 64; i++){
+    for(int i = 0; i < tamA; i++){
         if(i > 256){
             printf(" -- A matriz passou do limite de 256 -- ");
             break;
@@ -151,7 +151,7 @@ int main (int argc, char **argv) {
     f = (float*)&_matrixB_rows;
 
     printf("--------Matriz B--------\n");
-    for(int i = 0; i < 64; i++){
+    for(int i = 0; i < tamB; i++){
         if(i > 256){
             printf(" -- A matriz passou do limite de 256 -- ");
             break;
@@ -164,7 +164,7 @@ int main (int argc, char **argv) {
     f = (float*)&_matrixC_rows;
 
     printf("--------Matriz C--------\n");
-    for(int i = 0; i < 64; i++){
+    for(int i = 0; i < tamC; i++){
         if(i > 256){
             printf(" -- A matriz passou do limite de 256 -- ");
             break;
