@@ -29,7 +29,7 @@ Matrix *newMatrix (long int height, long int width){
 }
 
 void initializeMatrix(__m256 *_matrix_rows, long unsigned int tam) {
-    for(int i = 0 ; i < tam ; i++){
+    for(unsigned long int i = 0 ; i < tam ; i++){
         _matrix_rows[i] = _mm256_setzero_ps ();
     }
 }
@@ -49,7 +49,7 @@ void delMatrix(Matrix *matrix) {
 }
 
 void copyFloatArray (float *arr1, float *arr2, int tam) {
-    for(int i = 0 ; i < tam ; i++) {
+    for(unsigned long int i = 0 ; i < tam ; i++) {
         arr1[i] = arr2[i];
     }
 }
@@ -139,7 +139,7 @@ int main (int argc, char **argv) {
     float* f = (float*)&_matrixA_rows;
 
     printf("--------Matriz A--------\n");
-    for(int i = 0; i < tamA; i++){
+    for(unsigned long int i = 0; i < tamA; i++){
         if(i > 256){
             printf(" -- A matriz passou do limite de 256 -- ");
             break;
@@ -151,7 +151,7 @@ int main (int argc, char **argv) {
     f = (float*)&_matrixB_rows;
 
     printf("--------Matriz B--------\n");
-    for(int i = 0; i < tamB; i++){
+    for(unsigned long int i = 0; i < tamB; i++){
         if(i > 256){
             printf(" -- A matriz passou do limite de 256 -- ");
             break;
@@ -164,7 +164,7 @@ int main (int argc, char **argv) {
     f = (float*)&_matrixC_rows;
 
     printf("--------Matriz C--------\n");
-    for(int i = 0; i < tamC; i++){
+    for(unsigned long int i = 0; i < tamC; i++){
         if(i > 256){
             printf(" -- A matriz passou do limite de 256 -- ");
             break;
@@ -189,7 +189,7 @@ int main (int argc, char **argv) {
     printf("%f ms\n", timedifference_msec(start, stop));
     // printa a matriz
     printf("--------Matriz A--------\n");
-    for(int i = 0; i < matrixA->width * matrixA->height; i++){
+    for(unsigned long int i = 0; i < matrixA->width * matrixA->height; i++){
         if(i > 256){
             printf(" -- A matriz passou do limite de 256 -- ");
             break;
@@ -222,7 +222,7 @@ int main (int argc, char **argv) {
     printf("%f ms\n", timedifference_msec(start, stop));
     // printa a matriz
     printf("--------Matriz C--------\n");
-    for(int i = 0; i < matrixC->width * matrixC->height; i++){
+    for(unsigned long int i = 0; i < matrixC->width * matrixC->height; i++){
         if(i > 256){
             printf(" -- A matriz passou do limite de 256 -- ");
             break;
