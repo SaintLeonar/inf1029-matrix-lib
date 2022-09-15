@@ -15,7 +15,7 @@ Matrix *newMatrix (long int height, long int width){
         return NULL;
     }
 
-    matrix->rows = (float*)aligned_alloc(32, tam*sizeof(float));
+    matrix->rows = (float*)aligned_alloc(32, 2*tam*sizeof(float));
     if(matrix->rows == NULL){
         printf("(Error) Erro de memoria insuficiente\n");
         free(matrix);
@@ -30,7 +30,6 @@ Matrix *newMatrix (long int height, long int width){
 
 void initializeMatrix(__m256 *_matrix_rows, long unsigned int tam) {
     for(int i = 0 ; i < tam ; i++){
-        printf("%d", i);
         _matrix_rows[i] = _mm256_setzero_ps ();
     }
 }
@@ -97,6 +96,8 @@ int main (int argc, char **argv) {
     tamB = matrixB->height * matrixB->width;
     tamC = matrixA->height * matrixB->width;
 
+    tam = tamA/8 + tamB/8 + tamC/8;
+
     __m256 _matrixA_rows[tamA/8];
     __m256 _matrixB_rows[tamB/8];
     __m256 _matrixC_rows[tamC/8]; 
@@ -115,7 +116,9 @@ int main (int argc, char **argv) {
     }
     // Popula ->rows
     fread(matrixA->rows, sizeof(matrixA->rows), matrixA->height*matrixA->width, file_pointer);
-    //_matrixA_rows = _mm256_load_ps(matrixA->rows);
+    for(i = 0 ; i < tamA/8 ; i++) {
+        _matrixA_rows[i] = _mm256_load_ps(matrixA->rows);
+    }
     fclose(file_pointer);
 
     // Arquivo 2
@@ -126,13 +129,15 @@ int main (int argc, char **argv) {
     }
     // Popula ->rows
     fread(matrixB->rows, sizeof(matrixB->rows), matrixB->height*matrixB->width, file_pointer);
-    //_matrixB_rows = _mm256_load_ps(matrixB->rows);
+    for(i = 0 ; i < tamB/8 ; i++) {
+        _matrixB_rows[i] = _mm256_load_ps(matrixB->rows);
+    }
     fclose(file_pointer);
 
     // Printa Matrizes ========================================================================================
 
-    float* f = (float*)&_matrixC_rows;
-/*
+    float* f = (float*)&_matrixA_rows;
+
     printf("--------Matriz A--------\n");
     for(int i = 0; i < 64; i++){
         if(i > 256){
@@ -155,8 +160,9 @@ int main (int argc, char **argv) {
     }
     printf("\n");
 
+
     f = (float*)&_matrixC_rows;
-*/
+
     printf("--------Matriz C--------\n");
     for(int i = 0; i < 64; i++){
         if(i > 256){
@@ -165,7 +171,8 @@ int main (int argc, char **argv) {
         }
         printf("%.1f ", f[i]);
     }
-    printf("aqui\n");
+    printf("\n");
+
 
 
     // Multiplicação Escalar ==================================================================================
