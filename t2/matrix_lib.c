@@ -28,13 +28,18 @@ int scalar_matrix_mult(float scalar_value, Matrix *matrix){
     //
     float *proxMatrix = matrix->rows;
 
+    __m256 matriz;
+    __m256 result;
 
     // Percorre o vetor e multiplica pelo escalar
     for(unsigned long int i = 0; i < tam; i+= 8, proxMatrix += 8){
-        __m256 matriz = _mm256_load_ps(proxMatrix);
+        // faz o load da matriz com referencia no ponteiro
+        matriz = _mm256_load_ps(proxMatrix);
 
-        __m256 result = _mm256_mul_ps(matrixScalar, matriz);
-
+        // multiplica pelo escalar
+        result = _mm256_mul_ps(matrixScalar, matriz);
+        
+        // faz o store
         _mm256_store_ps(proxMatrix, result);
     }
 
@@ -64,45 +69,41 @@ int matrix_matrix_mult(Matrix *matrixA, Matrix * matrixB, Matrix * matrixC){
         return 0;
     }
 
-
+    // declaração dos ponteiros
     float *proxA;
     float *proxB;
     float *proxC;
-    // Percorre a matriz C
+
+    // declaração dos m256
+    __m256 matrizA;
+    __m256 matrizB;
+    __m256 matrizC;
 
     proxA = matrixA->rows;
     for(unsigned long int i = 0; i < matrixA->height; i++){
        proxB = matrixB->rows;
+       
        for(unsigned long int j = 0; j < matrixA->width; j++, proxA++){
             // inicializa a matrix A 
-            __m256 matrizA = _mm256_set1_ps(*proxA);
+            matrizA = _mm256_set1_ps(*proxA);
 
-            proxC = matrixC ->rows;
+            proxC = matrixC->rows + (matrixC->height * i);
             for(unsigned long int k = 0; k < matrixB->width; k+= 8, proxC += 8, proxB += 8){
-                // carrega o vetor da matriz b de 8 em 8
-                __m256 matrizB = _mm256_load_ps(proxB);
-                
-                __m256 matrizC = _mm256_load_ps(proxC);
+                // carrega o vetor da matriz b
+                matrizB = _mm256_load_ps(proxB);
 
-                // Faz a conta de multiplicacao de matriz
+                // carrega matrizC com o ponteiro proxC
+                matrizC = _mm256_load_ps(proxC);
+
+                // Faz a multiplicacao matriz x matriz
                 matrizC = _mm256_fmadd_ps(matrizA, matrizB, matrizC);
 
                 // Faz o store
                 _mm256_store_ps(proxC, matrizC);
-
+                //printf("%.2f \n", *proxC);
             }
        }
     }
-    //show_matrix(&matrixC, 'C');
-
     return 1;
  }
 
- /*
-for(unsigned long i = 0; i < tamC; i++){
-        matrixC->rows[i] = 0;
-        for(unsigned long j = 0; j < matrixA->width; j++)
-            matrixC->rows[i] += matrixA->rows[matrixA->width * (i/ matrixA->height) + j] * matrixB->rows[matrixA->height* (i%matrixA->height) + j];
-            
-    }
- */
