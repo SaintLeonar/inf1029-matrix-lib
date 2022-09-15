@@ -28,9 +28,9 @@ Matrix *newMatrix (long int height, long int width){
     return matrix;
 }
 
-void initializeMatrix(__m256 *_matrix_rows, long unsigned int tam) {
-    for(unsigned long int i = 0 ; i < tam ; i++){
-        _matrix_rows[i] = _mm256_setzero_ps ();
+void initializeMatrix(__m256 _matrix_rows, long unsigned int tam, float *proxC) {
+    for(unsigned long int i = 0 ; i < tam ; i+=8, proxC += 8){
+        _matrix_rows = _mm256_setzero_ps ();
     }
 }
 
@@ -76,6 +76,8 @@ int main (int argc, char **argv) {
     struct timeval start, stop, overall_t1, overall_t2;
     gettimeofday(&overall_t1, NULL);
 
+    
+
     // Variáveis =======================================================================================
     unsigned long int tamA, tamB, tamC, tam, i;
 
@@ -92,22 +94,43 @@ int main (int argc, char **argv) {
     matrixB = newMatrix(dimMatrixB_height, dimMatrixB_width);
     matrixC = newMatrix(dimMatrixA_height, dimMatrixB_width);   // Dimensão de C := height de A e width de B
 
+    
+
     tamA = matrixA->height * matrixA->width;
     tamB = matrixB->height * matrixB->width;
     tamC = matrixA->height * matrixB->width;
 
+
+
     tam = tamA/8 + tamB/8 + tamC/8;
 
-    __m256 _matrixA_rows[tamA/8];
+    /*__m256 _matrixA_rows[tamA/8];
     __m256 _matrixB_rows[tamB/8];
-    __m256 _matrixC_rows[tamC/8]; 
+    __m256 _matrixC_rows[tamC/8];*/
 
-    initializeMatrix(_matrixC_rows, tamC/8);
+    __m256 _matrixA_rows;
+    __m256 _matrixB_rows;
+    //__m256 _matrixC_rows;
+
+    float *proxA = matrixA->rows;
+    float *proxB = matrixB->rows;
+    float *proxC = matrixC->rows;
+
+    __m256 _matrixC_rows = _mm256_set1_ps(0.0);
+
+    for(unsigned long int i = 0; i < tam; i+= 8, proxC += 8)
+        _mm256_store_ps(proxC, _matrixC_rows);
+
+    //initializeMatrix(&_matrixC_rows, tamC, proxC);
+
+    //initializeMatrix(proxC, tamC/8);
 
     FILE *file_pointer;
 
     // Le arquivos =======================================================================================
     
+    
+  
     // Arquivo 1
     file_pointer = fopen(arqFloats1,"rb");
     if (file_pointer == NULL) {
@@ -116,8 +139,8 @@ int main (int argc, char **argv) {
     }
     // Popula ->rows
     fread(matrixA->rows, sizeof(matrixA->rows), matrixA->height*matrixA->width, file_pointer);
-    for(i = 0 ; i < tamA/8 ; i++) {
-        _matrixA_rows[i] = _mm256_load_ps(matrixA->rows);
+    for(i = 0 ; i < tamA ; i+= 8, proxA += 8) {
+        _matrixA_rows = _mm256_load_ps(proxA);
     }
     fclose(file_pointer);
 
@@ -129,26 +152,27 @@ int main (int argc, char **argv) {
     }
     // Popula ->rows
     fread(matrixB->rows, sizeof(matrixB->rows), matrixB->height*matrixB->width, file_pointer);
-    for(i = 0 ; i < tamB/8 ; i++) {
-        _matrixB_rows[i] = _mm256_load_ps(matrixB->rows);
+    for(i = 0 ; i < tamB ; i+= 8, proxB += 8) {
+        _matrixB_rows = _mm256_load_ps(proxB);
     }
     fclose(file_pointer);
 
     // Printa Matrizes ========================================================================================
 
-    float* f = (float*)&_matrixA_rows;
+    //float* f = (float*)&_matrixA_rows;
 
+    
     printf("--------Matriz A--------\n");
     for(unsigned long int i = 0; i < tamA; i++){
         if(i > 256){
             printf(" -- A matriz passou do limite de 256 -- ");
             break;
         }
-        printf("%.1f ", f[i]);
+        printf("%.1f ", matrixA->rows[i]);
     }
     printf("\n");
 
-    f = (float*)&_matrixB_rows;
+    //f = (float*)&_matrixB_rows;
 
     printf("--------Matriz B--------\n");
     for(unsigned long int i = 0; i < tamB; i++){
@@ -156,12 +180,12 @@ int main (int argc, char **argv) {
             printf(" -- A matriz passou do limite de 256 -- ");
             break;
         }
-        printf("%.1f ", f[i]);
+        printf("%.1f ", matrixB->rows[i]);
     }
     printf("\n");
 
 
-    f = (float*)&_matrixC_rows;
+    //f = (float*)&_matrixC_rows;
 
     printf("--------Matriz C--------\n");
     for(unsigned long int i = 0; i < tamC; i++){
@@ -169,7 +193,7 @@ int main (int argc, char **argv) {
             printf(" -- A matriz passou do limite de 256 -- ");
             break;
         }
-        printf("%.1f ", f[i]);
+        printf("%.1f ", matrixC->rows[i]);
     }
     printf("\n");
 

@@ -1,7 +1,7 @@
 # include <stdio.h>
 #include <stdlib.h>
-#define TAM 1048576
-#define VAL 1.0
+#define TAM 4194304
+#define VAL 5.0
 // 1048576 - 1024 x 1024
 // 4194304 - 2048 x 2048
 
@@ -31,9 +31,11 @@ printf("-- Matriz Gerada --\n");
 
 fp = fopen ("matrix.dat", "rb");
 
-float array[TAM];
+float* array;
 
-fread(array, sizeof(array), 1, fp);
+array = (float*)malloc(TAM*sizeof(float));
+
+fread(array, sizeof(array), TAM, fp);
 
 for(int i = 0; i < TAM; i++){
     if(i > 256){
@@ -44,6 +46,7 @@ for(int i = 0; i < TAM; i++){
 }
 printf("\n");
 
+free(array);
 fclose(fp);
 return 0;
 
