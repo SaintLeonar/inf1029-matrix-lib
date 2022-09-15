@@ -83,10 +83,10 @@ int main (int argc, char **argv) {
     Matrix *matrixB;
     Matrix *matrixC;
 
-    if(!isValidDimension(dimMatrixA_height,dimMatrixB_height)) {
+    /*if(!isValidDimension(dimMatrixA_height,dimMatrixB_height)) {
         printf("(Error) Dimensões não são válidas\n");
         return 0;
-    }
+    }*/
 
     matrixA = newMatrix(dimMatrixA_height, dimMatrixA_width);
     matrixB = newMatrix(dimMatrixB_height, dimMatrixB_width);
@@ -177,7 +177,6 @@ int main (int argc, char **argv) {
 
     // Multiplicação Escalar ==================================================================================
 
-/*
 
     gettimeofday(&start, NULL);
     if(scalar_matrix_mult(valorEscalar, matrixA) == 0) {
@@ -198,28 +197,20 @@ int main (int argc, char **argv) {
         printf("%.1f ", matrixA->rows[i]);
     }
     printf("\n");
-
     // Escreve arquivo binário Result1
     file_pointer = fopen(arqResult1, "wb");
     if (file_pointer == NULL) {
         printf("(Error) Erro ao tentar criar o arquivo!\n");
         return 0;
     }
-
     float* arrayAux1;
     arrayAux1 = (float*) malloc(dimMatrixA_height*dimMatrixA_width*sizeof(float)); // Array auxiliar para o fwrite();
-
     for(i = 0 ; i < matrixA->width * matrixA->height ; i++){
         arrayAux1[i] = matrixA->rows[i];
     }
-
     fwrite(arrayAux1, sizeof(arrayAux1), 1024 , file_pointer);
     fclose(file_pointer);
-
-
-
     // Multiplicação de Matrizes ======================================================================
-
     gettimeofday(&start, NULL);
     if(matrix_matrix_mult(matrixA, matrixB, matrixC) == 0) {
         printf("(Error) Erro na multiplicação de matrizes");
@@ -239,48 +230,36 @@ int main (int argc, char **argv) {
         printf("%.1f ", matrixC->rows[i]);
     }
     printf("\n");
-
     // Escreve arquivo binario Result2
     file_pointer = fopen(arqResult2, "wb");
     if (file_pointer == NULL) {
         printf("(Error) Erro ao tentar criar o arquivo!\n");
         return 0;
     }
-
     float* arrayAux2;
     arrayAux2 = (float*) malloc(matrixC->height*matrixC->width*sizeof(float)); // Array auxiliar para o fwrite();
-
     for(i = 0 ; i < tam ; i++){
         arrayAux2[i] = matrixC->rows[i];
     }
-
     fwrite(arrayAux2, sizeof(arrayAux2), 1024 , file_pointer);
     fclose(file_pointer);
-
     // Le arquivo binario
     file_pointer = fopen(arqResult2, "rb");
     if (file_pointer == NULL) {
         printf("(Error) Erro ao tentar criar o arquivo!\n");
         return 0;
     }
-
     // TESTE DO ARQUIVO BINÁRIO
-
     //float matrixTest[tam]; // Array auxiliar para o fread();
     //fread(matrixTest, sizeof(matrixTest), 1, file_pointer);
-
     //fclose(file_pointer);
-
     //for(i = 0 ; i < tam ; i++) {
     //    printf("%f ", matrixTest[i]);
     //}
-
     //printf("\n");
-
     gettimeofday(&overall_t2, NULL);
     // Show elapsed overall time
     printf("Overall time: %f ms\n", timedifference_msec(overall_t1, overall_t2));
 
-*/
     return 1;
 }
