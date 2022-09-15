@@ -12,3 +12,14 @@ t1/main
 *.txt
 t2/main
 *.exe
+exercicio1_array_sub/array_sub.c
+exercicio1_array_sub/timer.h
+inf1029_avx_exemplos/detect_cpu_features.c
+inf1029_avx_exemplos/fma_test.c
+inf1029_avx_exemplos/hello_avx.c
+inf1029_avx_exemplos/mask_load.c
+inf1029_avx_exemplos/timer.c
+inf1029_avx_exemplos/timer.h
+testeAVX
+testeAVX.c
+t2/matrix_lib_test
