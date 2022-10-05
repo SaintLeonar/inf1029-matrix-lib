@@ -23,3 +23,9 @@ inf1029_avx_exemplos/timer.h
 testeAVX
 testeAVX.c
 t2/matrix_lib_test
+*.json
+t3/main
+t3/timer.c
+t3/timer.h
+t3/timer_test.c
+t3/matrix_lib_test
