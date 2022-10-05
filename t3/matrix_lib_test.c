@@ -65,18 +65,18 @@ int main (int argc, char **argv) {
     // matriz B
     long int dimMatrixB_height = atoi(argv[4]);
     long int dimMatrixB_width = atoi(argv[5]);
+    // número de threads
+    int n_threads = atoi(argv[6]);
     // arquivo de floats
-    char *arqFloats1 = argv[6];
-    char *arqFloats2 = argv[7];
+    char *arqFloats1 = argv[7];
+    char *arqFloats2 = argv[8];
     // arquivo de resultados
-    char *arqResult1 = argv[8];
-    char *arqResult2 = argv[9];
+    char *arqResult1 = argv[9];
+    char *arqResult2 = argv[10];
 
     // Timer
     struct timeval start, stop, overall_t1, overall_t2;
     gettimeofday(&overall_t1, NULL);
-
-    
 
     // Variáveis =======================================================================================
     unsigned long int tamA, tamB, tamC, tam, i;
@@ -85,32 +85,17 @@ int main (int argc, char **argv) {
     Matrix *matrixB;
     Matrix *matrixC;
 
-    /*if(!isValidDimension(dimMatrixA_height,dimMatrixB_height)) {
-        printf("(Error) Dimensões não são válidas\n");
-        return 0;
-    }*/
-
     matrixA = newMatrix(dimMatrixA_height, dimMatrixA_width);
     matrixB = newMatrix(dimMatrixB_height, dimMatrixB_width);
     matrixC = newMatrix(dimMatrixA_height, dimMatrixB_width);   // Dimensão de C := height de A e width de B
 
-    
-
     tamA = matrixA->height * matrixA->width;
     tamB = matrixB->height * matrixB->width;
     tamC = matrixA->height * matrixB->width;
-
-
-
     tam = tamA/8 + tamB/8 + tamC/8;
-
-    /*__m256 _matrixA_rows[tamA/8];
-    __m256 _matrixB_rows[tamB/8];
-    __m256 _matrixC_rows[tamC/8];*/
 
     __m256 _matrixA_rows;
     __m256 _matrixB_rows;
-    //__m256 _matrixC_rows;
 
     float *proxA = matrixA->rows;
     float *proxB = matrixB->rows;
@@ -121,16 +106,13 @@ int main (int argc, char **argv) {
     for(unsigned long int i = 0; i < tam; i+= 8, proxC += 8)
         _mm256_store_ps(proxC, _matrixC_rows);
 
-    //initializeMatrix(&_matrixC_rows, tamC, proxC);
-
-    //initializeMatrix(proxC, tamC/8);
-
     FILE *file_pointer;
 
+    // Seta número de threads
+    set_number_threads(n_threads);
+
     // Le arquivos =======================================================================================
-    
-    
-  
+
     // Arquivo 1
     file_pointer = fopen(arqFloats1,"rb");
     if (file_pointer == NULL) {
@@ -158,9 +140,6 @@ int main (int argc, char **argv) {
     fclose(file_pointer);
 
     // Printa Matrizes ========================================================================================
-
-    //float* f = (float*)&_matrixA_rows;
-
     
     printf("--------Matriz A--------\n");
     for(unsigned long int i = 0; i < tamA; i++){
@@ -172,8 +151,6 @@ int main (int argc, char **argv) {
     }
     printf("\n");
 
-    //f = (float*)&_matrixB_rows;
-
     printf("--------Matriz B--------\n");
     for(unsigned long int i = 0; i < tamB; i++){
         if(i > 256){
@@ -183,9 +160,6 @@ int main (int argc, char **argv) {
         printf("%.1f ", matrixB->rows[i]);
     }
     printf("\n");
-
-
-    //f = (float*)&_matrixC_rows;
 
     printf("--------Matriz C--------\n");
     for(unsigned long int i = 0; i < tamC; i++){
@@ -197,10 +171,7 @@ int main (int argc, char **argv) {
     }
     printf("\n");
 
-
-
     // Multiplicação Escalar ==================================================================================
-
 
     gettimeofday(&start, NULL);
     if(scalar_matrix_mult(valorEscalar, matrixA) == 0) {
@@ -273,6 +244,7 @@ int main (int argc, char **argv) {
         printf("(Error) Erro ao tentar criar o arquivo!\n");
         return 0;
     }
+
     // TESTE DO ARQUIVO BINÁRIO
     //float matrixTest[tam]; // Array auxiliar para o fread();
     //fread(matrixTest, sizeof(matrixTest), 1, file_pointer);
