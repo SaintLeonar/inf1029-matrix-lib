@@ -1,4 +1,4 @@
-extern int num_threads;
+//extern int qtd_threads;
 
 typedef struct {
     unsigned long int height;
