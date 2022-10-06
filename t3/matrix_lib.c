@@ -8,9 +8,55 @@
 #include <stdlib.h>
 #include "matrix_lib.h"
 #include <immintrin.h>
+#include <pthread.h>
 //#include "timer.h"
 
+int qnt_threads = 1;
+
+struct data{
+    float scalar_value;
+    struct Matrix *matrix;
+    int id;
+};
+
 // ------------------- Funcoes -------------------
+
+void set_number_threads(int num_threads){
+    qnt_threads = num_threads;
+}
+
+void *thread_escalar(void *threadarg){
+    struct data *my_data;
+
+    my_data = (struct data *)threadarg;
+
+    // inicializa uma matriz do escalar
+    __m256 matrixScalar = _mm256_set1_ps(my_data->scalar_value);
+
+
+    for(int i = my_data->id; i < my_data->matrix.height; i += qnt_threads){
+        // diferencia o proxMatrix para cada thread
+        float *proxMatrix = (i * my_data->matrix.rows) + my_data->matrix->rows;
+
+        __m256 matriz;
+        __m256 result;
+
+        // Percorre o vetor e multiplica pelo escalar
+        for(unsigned long int j = 0; i < my_data->matrix.width; j+= 8, proxMatrix += 8){
+            // faz o load da matriz com referencia no ponteiro
+            matriz = _mm256_load_ps(proxMatrix);
+
+            // multiplica pelo escalar
+            result = _mm256_mul_ps(matrixScalar, matriz);
+            
+            // faz o store
+            _mm256_store_ps(proxMatrix, result);
+        }
+    }
+
+    pthread_exit(NULL);
+}
+
 
 // Funcao de multiplicação por escalar (Falta o retorno 0)
 int scalar_matrix_mult(float scalar_value, Matrix *matrix){
@@ -22,27 +68,35 @@ int scalar_matrix_mult(float scalar_value, Matrix *matrix){
     // checa a matriz
     if(tam == 0 || matrix->rows == NULL) return 0;
 
-    // inicializa uma matriz do escalar
-    __m256 matrixScalar = _mm256_set1_ps(scalar_value);
+    // declaração para a thread
+    pthread_t thread[qnt_threads];
+    struct data thread_data_array[qnt_threads];
 
-    //
-    float *proxMatrix = matrix->rows;
+    // inicializa o atributo
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-    __m256 matriz;
-    __m256 result;
 
-    // Percorre o vetor e multiplica pelo escalar
-    for(unsigned long int i = 0; i < tam; i+= 8, proxMatrix += 8){
-        // faz o load da matriz com referencia no ponteiro
-        matriz = _mm256_load_ps(proxMatrix);
+    int rc;
+    // cria as threads e chama a função de multiplicação
+    for(int t = 0; t < qnt_threads; t++){
+        thread_data_array[t].scalar_value = scalar_value;
+        thread_data_array[t].matrix = matrix;
+        thread_data_array[t].id = t;
 
-        // multiplica pelo escalar
-        result = _mm256_mul_ps(matrixScalar, matriz);
-        
-        // faz o store
-        _mm256_store_ps(proxMatrix, result);
+        rc = pthread_create(&thread[t], &attr, thread_escalar, (void*)&thread_data_array[t]);
     }
 
+    // destroi o atributo
+    pthread_destroy(&attr);
+
+    // espera as threads
+    void* status;
+    for(int j = 0; j < qnt_threads; j ++)
+        rc = pthread_join(qnt_threads[j], &status);
+    
+    
     return 1;
 }
 
