@@ -15,7 +15,7 @@ int qnt_threads = 1;
 
 struct data{
     float scalar_value;
-    struct Matrix *matrix;
+    Matrix *matrix;
     int id;
 };
 
@@ -33,10 +33,11 @@ void *thread_escalar(void *threadarg){
     // inicializa uma matriz do escalar
     __m256 matrixScalar = _mm256_set1_ps(my_data->scalar_value);
 
+    
 
-    for(int i = my_data->id; i < my_data->matrix.height; i += qnt_threads){
+    for(int i = my_data->id; i < my_data->matrix->height; i += qnt_threads){
         // diferencia o proxMatrix para cada thread
-        float *proxMatrix = (i * my_data->matrix.rows) + my_data->matrix->rows;
+        float *proxMatrix = (i * my_data->matrix->rows) + my_data->matrix->rows;
 
         __m256 matriz;
         __m256 result;
