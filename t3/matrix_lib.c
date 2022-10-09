@@ -11,11 +11,18 @@
 #include <pthread.h>
 //#include "timer.h"
 
-int qnt_threads = 1;
+int qnt_threads = 4;
 
-struct data{
+struct dataScalar{
     float scalar_value;
     Matrix *matrix;
+    int id;
+};
+
+struct dataMatrix_Matrix{
+    Matrix *matrixA;
+    Matrix *matrixB;
+    Matrix *matrixC;
     int id;
 };
 
@@ -26,42 +33,41 @@ void set_number_threads(int num_threads){
 }
 
 void *thread_escalar(void *threadarg){
-    struct data *my_data;
+    struct dataScalar *my_data;
 
-    my_data = (struct data *)threadarg;
-
+    my_data = (struct dataScalar *)threadarg;
+    
     // inicializa uma matriz do escalar
     __m256 matrixScalar = _mm256_set1_ps(my_data->scalar_value);
-
     
-
+    
     for(int i = my_data->id; i < my_data->matrix->height; i += qnt_threads){
         // diferencia o proxMatrix para cada thread
-        float *proxMatrix = (i * my_data->matrix->rows) + my_data->matrix->rows;
-
-        __m256 matriz;
-        __m256 result;
-
+        
+        float *proxMatrix = my_data->matrix->rows + (i * my_data->matrix->width);
+        //float *nxt_result = my_data->matrix->rows + (i * my_data->matrix->width);
+        
         // Percorre o vetor e multiplica pelo escalar
-        for(unsigned long int j = 0; i < my_data->matrix.width; j+= 8, proxMatrix += 8){
+        for(unsigned long int j = 0; j < my_data->matrix->width; j+= 8, proxMatrix += 8){
             // faz o load da matriz com referencia no ponteiro
-            matriz = _mm256_load_ps(proxMatrix);
-
+            __m256 matriz = _mm256_load_ps(proxMatrix);
+            
             // multiplica pelo escalar
-            result = _mm256_mul_ps(matrixScalar, matriz);
+            __m256 result = _mm256_mul_ps(matrixScalar, matriz);
             
             // faz o store
             _mm256_store_ps(proxMatrix, result);
+            
         }
     }
-
+    
     pthread_exit(NULL);
 }
-
 
 // Funcao de multiplicação por escalar (Falta o retorno 0)
 int scalar_matrix_mult(float scalar_value, Matrix *matrix){
 
+    
     // declaração de variaveis
     unsigned long int tam;
     tam = matrix->height * matrix->width;
@@ -71,7 +77,7 @@ int scalar_matrix_mult(float scalar_value, Matrix *matrix){
 
     // declaração para a thread
     pthread_t thread[qnt_threads];
-    struct data thread_data_array[qnt_threads];
+    struct dataScalar thread_data_array[qnt_threads];
 
     // inicializa o atributo
     pthread_attr_t attr;
@@ -80,6 +86,7 @@ int scalar_matrix_mult(float scalar_value, Matrix *matrix){
 
 
     int rc;
+    
     // cria as threads e chama a função de multiplicação
     for(int t = 0; t < qnt_threads; t++){
         thread_data_array[t].scalar_value = scalar_value;
@@ -88,18 +95,68 @@ int scalar_matrix_mult(float scalar_value, Matrix *matrix){
 
         rc = pthread_create(&thread[t], &attr, thread_escalar, (void*)&thread_data_array[t]);
     }
-
+    
     // destroi o atributo
-    pthread_destroy(&attr);
-
+    pthread_attr_destroy(&attr);
+    printf("teste\n");
     // espera as threads
     void* status;
     for(int j = 0; j < qnt_threads; j ++)
-        rc = pthread_join(qnt_threads[j], &status);
+        rc = pthread_join(thread[j], &status);
     
-    
+    printf("entrei\n");
     return 1;
 }
+
+void *thread_matrix(void *threadarg){
+
+    struct dataMatrix_Matrix *my_data;
+    my_data = (struct dataMatrix_Matrix *)threadarg;
+
+    // declaração dos ponteiros
+    float *proxA;
+    float *proxB;
+    float *proxC;
+
+    // declaração dos m256
+    __m256 matrizA;
+    __m256 matrizB;
+    __m256 matrizC;
+
+    for(unsigned long int i = 0; i < my_data->matrixA->height; i++){
+
+        proxA = my_data->matrixA->rows + (i * my_data->matrixA->width);
+
+
+        // talvez eu tenha viajado somando o witdh de b //
+        proxB = my_data->matrixB->rows + (i * my_data->matrixB->width);
+       
+        for(unsigned long int j = 0; j < my_data->matrixA->width; j++, proxA++){
+            // inicializa a matrix A 
+            matrizA = _mm256_set1_ps(*proxA);
+
+            proxC = my_data->matrixC->rows + (my_data->matrixC->height * i);
+            for(unsigned long int k = 0; k < my_data->matrixB->width; k+= 8, proxC += 8, proxB += 8){
+                // carrega o vetor da matriz b
+                matrizB = _mm256_load_ps(proxB);
+
+                // carrega matrizC com o ponteiro proxC
+                matrizC = _mm256_load_ps(proxC);
+
+                // Faz a multiplicacao matriz x matriz
+                matrizC = _mm256_fmadd_ps(matrizA, matrizB, matrizC);
+
+                // Faz o store
+                _mm256_store_ps(proxC, matrizC);
+                //printf("%.2f \n", *proxC);
+            }
+       }
+    }
+    pthread_exit(NULL);
+}
+
+
+
 
 // Funcao de multiplicacao por matriz
 int matrix_matrix_mult(Matrix *matrixA, Matrix * matrixB, Matrix * matrixC){
@@ -124,41 +181,35 @@ int matrix_matrix_mult(Matrix *matrixA, Matrix * matrixB, Matrix * matrixC){
         return 0;
     }
 
-    // declaração dos ponteiros
-    float *proxA;
-    float *proxB;
-    float *proxC;
+    // declaração para a thread
+    pthread_t thread[qnt_threads];
+    struct dataMatrix_Matrix thread_data_array[qnt_threads];
 
-    // declaração dos m256
-    __m256 matrizA;
-    __m256 matrizB;
-    __m256 matrizC;
+    // inicializa o atributo
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-    proxA = matrixA->rows;
-    for(unsigned long int i = 0; i < matrixA->height; i++){
-       proxB = matrixB->rows;
-       
-       for(unsigned long int j = 0; j < matrixA->width; j++, proxA++){
-            // inicializa a matrix A 
-            matrizA = _mm256_set1_ps(*proxA);
+    int rc;
+    // cria as threads e chama a função de multiplicação
+    for(int t = 0; t < qnt_threads; t++){
+        
+        thread_data_array[t].matrixA = matrixA;
+        thread_data_array[t].matrixB = matrixB;
+        thread_data_array[t].matrixC = matrixC;
+        thread_data_array[t].id = t;
 
-            proxC = matrixC->rows + (matrixC->height * i);
-            for(unsigned long int k = 0; k < matrixB->width; k+= 8, proxC += 8, proxB += 8){
-                // carrega o vetor da matriz b
-                matrizB = _mm256_load_ps(proxB);
-
-                // carrega matrizC com o ponteiro proxC
-                matrizC = _mm256_load_ps(proxC);
-
-                // Faz a multiplicacao matriz x matriz
-                matrizC = _mm256_fmadd_ps(matrizA, matrizB, matrizC);
-
-                // Faz o store
-                _mm256_store_ps(proxC, matrizC);
-                //printf("%.2f \n", *proxC);
-            }
-       }
+        rc = pthread_create(&thread[t], &attr, thread_escalar, (void*)&thread_data_array[t]);
     }
+
+    // destroi o atributo
+    pthread_attr_destroy(&attr);
+
+    // espera as threads
+    void* status;
+    for(int j = 0; j < qnt_threads; j ++)
+        rc = pthread_join(thread[j], &status);
+
     return 1;
  }
 
