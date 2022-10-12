@@ -98,13 +98,11 @@ int scalar_matrix_mult(float scalar_value, Matrix *matrix){
     
     // destroi o atributo
     pthread_attr_destroy(&attr);
-    printf("teste\n");
     // espera as threads
     void* status;
     for(int j = 0; j < qnt_threads; j ++)
         rc = pthread_join(thread[j], &status);
     
-    printf("entrei\n");
     return 1;
 }
 
@@ -123,22 +121,23 @@ void *thread_matrix(void *threadarg){
     __m256 matrizB;
     __m256 matrizC;
 
-    for(unsigned long int i = 0; i < my_data->matrixA->height; i++){
+    for(unsigned long int i = my_data->id; i < my_data->matrixA->height; i += qnt_threads){
 
-        proxA = my_data->matrixA->rows + (i * my_data->matrixA->width);
+        proxA = my_data->matrixA->rows + (i * my_data->matrixA->height);
 
 
         // talvez eu tenha viajado somando o witdh de b //
-        proxB = my_data->matrixB->rows + (i * my_data->matrixB->width);
-       
+        proxB = my_data->matrixB->rows;
         for(unsigned long int j = 0; j < my_data->matrixA->width; j++, proxA++){
             // inicializa a matrix A 
             matrizA = _mm256_set1_ps(*proxA);
 
-            proxC = my_data->matrixC->rows + (my_data->matrixC->height * i);
+            proxC = my_data->matrixC->rows + (i * my_data->matrixC->width);
             for(unsigned long int k = 0; k < my_data->matrixB->width; k+= 8, proxC += 8, proxB += 8){
                 // carrega o vetor da matriz b
                 matrizB = _mm256_load_ps(proxB);
+
+
 
                 // carrega matrizC com o ponteiro proxC
                 matrizC = _mm256_load_ps(proxC);
@@ -181,6 +180,9 @@ int matrix_matrix_mult(Matrix *matrixA, Matrix * matrixB, Matrix * matrixC){
         return 0;
     }
 
+    
+
+
     // declaração para a thread
     pthread_t thread[qnt_threads];
     struct dataMatrix_Matrix thread_data_array[qnt_threads];
@@ -199,16 +201,22 @@ int matrix_matrix_mult(Matrix *matrixA, Matrix * matrixB, Matrix * matrixC){
         thread_data_array[t].matrixC = matrixC;
         thread_data_array[t].id = t;
 
-        rc = pthread_create(&thread[t], &attr, thread_escalar, (void*)&thread_data_array[t]);
+        rc = pthread_create(&thread[t], &attr, thread_matrix, (void*)&thread_data_array[t]);
     }
 
     // destroi o atributo
     pthread_attr_destroy(&attr);
 
+
     // espera as threads
     void* status;
     for(int j = 0; j < qnt_threads; j ++)
         rc = pthread_join(thread[j], &status);
+
+    //for(int i = 0 ; i < matrixA->width * matrixA->height ; i++){
+        //printf("C %.2f", matrixC->rows[i]);
+    //}
+    printf("\n");
 
     return 1;
  }
