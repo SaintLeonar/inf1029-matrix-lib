@@ -11,7 +11,7 @@
 #include <pthread.h>
 //#include "timer.h"
 
-int qnt_threads = 4;
+int qnt_threads = 1;
 
 struct dataScalar{
     float scalar_value;
