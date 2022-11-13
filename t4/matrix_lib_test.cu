@@ -3,15 +3,13 @@
 #include <stdbool.h>
 #include <cuda_runtime.h>
 
-#include<helper_functions.h>
-#include<helper_cuda.h>
-
 #include "matrix_lib.h"
 #include "timer.h"
 
 Matrix *newMatrix (long int height, long int width){
 
     long int tam = height * width;
+    cudaError_t cudaError;
 
     Matrix *matrix = (Matrix*) malloc(sizeof(Matrix));
     if(matrix == NULL){
@@ -28,9 +26,10 @@ Matrix *newMatrix (long int height, long int width){
     }
 
     // DEVICE
-    matrix->d_rows = (float *)malloc(tam*sizeof(float));
-    if(matrix->rows == NULL){
-        printf("(Error) Erro de memoria insuficiente\n");
+    cudaError = cudaMalloc((void **) &matrix->d_rows, tam*sizeof(float));
+
+    if(cudaError != cudaSuccess){
+        printf("cudaMalloc (device): returned error %s (code %d)\n", cudaGetErrorString(cudaError), cudaError);
         free(matrix);
         return NULL;
     }
@@ -45,7 +44,10 @@ void initializeMatrix(Matrix *matrix) {
     long int tam = matrix->height * matrix->width;
 
     for(int i = 0 ; i < tam ; i++){
-        matrix->rows[i] = 0;
+        matrix->h_rows[i] = 0;
+    }
+    for(int i = 0 ; i < tam ; i++){
+        matrix->d_rows[i] = 0;
     }
 }
 
@@ -87,7 +89,7 @@ int main (int argc, char **argv) {
     // número máximo de blocos por GRID a serem usados
     long int max_block = atoi(argv[7]);
     // quantidade máxima de memória que pode ser alocada na GPGPU
-    long int max_mem_gpu = atoi(argv[8])
+    long int max_mem_gpu = atoi(argv[8]);
     // arquivo de floats
     char *arqFloats1 = argv[9];
     char *arqFloats2 = argv[10];
@@ -146,7 +148,7 @@ int main (int argc, char **argv) {
     // Printa Matrizes ========================================================================================
     
     printf("--------Matriz A--------\n");
-    for(unsigned long int i = 0; i < tamA; i++){
+    for(unsigned long int i = 0; i < tam; i++){
         if(i > 256){
             printf(" -- A matriz passou do limite de 256 -- ");
             break;
@@ -156,7 +158,7 @@ int main (int argc, char **argv) {
     printf("\n");
 
     printf("--------Matriz B--------\n");
-    for(unsigned long int i = 0; i < tamB; i++){
+    for(unsigned long int i = 0; i < tam; i++){
         if(i > 256){
             printf(" -- A matriz passou do limite de 256 -- ");
             break;
@@ -166,7 +168,7 @@ int main (int argc, char **argv) {
     printf("\n");
 
     printf("--------Matriz C--------\n");
-    for(unsigned long int i = 0; i < tamC; i++){
+    for(unsigned long int i = 0; i < tam; i++){
         if(i > 256){
             printf(" -- A matriz passou do limite de 256 -- ");
             break;
@@ -176,26 +178,32 @@ int main (int argc, char **argv) {
     printf("\n");
 
     // Multiplicação Escalar ==================================================================================
-    /*
-    gettimeofday(&start, NULL);
+    
+    //gettimeofday(&start, NULL);
+
     if(scalar_matrix_mult(valorEscalar, matrixA) == 0) {
         printf("(Error) Erro na multiplicação escalar");
     }
-    gettimeofday(&stop, NULL);
+
+    //gettimeofday(&stop, NULL);
+
     printf("Writing first result: %s\n", arqResult1);
     printf("Executing scalar_matrix_mult(%.1f, matrixA)\n", valorEscalar);
+
     // Show init exec time
-    printf("%f ms\n", timedifference_msec(start, stop));
+    //printf("%f ms\n", timedifference_msec(start, stop));
     // printa a matriz
+
     printf("--------Matriz A--------\n");
     for(unsigned long int i = 0; i < matrixA->width * matrixA->height; i++){
         if(i > 256){
             printf(" -- A matriz passou do limite de 256 -- ");
             break;
         }
-        printf("%.1f ", matrixA->rows[i]);
+        printf("%.1f ", matrixA->h_rows[i]);
     }
     printf("\n");
+
     // Escreve arquivo binário Result1
     file_pointer = fopen(arqResult1, "wb");
     if (file_pointer == NULL) {
@@ -205,10 +213,12 @@ int main (int argc, char **argv) {
     float* arrayAux1;
     arrayAux1 = (float*) malloc(dimMatrixA_height*dimMatrixA_width*sizeof(float)); // Array auxiliar para o fwrite();
     for(i = 0 ; i < matrixA->width * matrixA->height ; i++){
-        arrayAux1[i] = matrixA->rows[i];
+        arrayAux1[i] = matrixA->h_rows[i];
     }
     fwrite(arrayAux1, sizeof(arrayAux1), 1024 , file_pointer);
     fclose(file_pointer);
+
+    /*
     // Multiplicação de Matrizes ======================================================================
     gettimeofday(&start, NULL);
     if(matrix_matrix_mult(matrixA, matrixB, matrixC) == 0) {
@@ -248,6 +258,7 @@ int main (int argc, char **argv) {
         printf("(Error) Erro ao tentar criar o arquivo!\n");
         return 0;
     }
+    */
 
     // TESTE DO ARQUIVO BINÁRIO
     //float matrixTest[tam]; // Array auxiliar para o fread();
@@ -257,10 +268,11 @@ int main (int argc, char **argv) {
     //    printf("%f ", matrixTest[i]);
     //}
     //printf("\n");
-    gettimeofday(&overall_t2, NULL);
+
+
+    //gettimeofday(&overall_t2, NULL);
     // Show elapsed overall time
-    printf("Overall time: %f ms\n", timedifference_msec(overall_t1, overall_t2));
+    //printf("Overall time: %f ms\n", timedifference_msec(overall_t1, overall_t2));
     
-    */
     return 1;
 }

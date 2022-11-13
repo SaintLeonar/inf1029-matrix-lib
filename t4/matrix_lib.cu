@@ -39,14 +39,14 @@ int scalar_matrix_mult(float scalar_value, Matrix *matrix){
 
     // Inicia o Kernel
     blockSize = THREADS_PER_BLOCK;
-    numBlocks = (N + blockSize - 1) / blockSize;
-    kernel_scalar_matrix_mult<<<numBlocks, blockSize>>>(scalar_value, *matrix, N);
+    numBlocks = (tam + blockSize - 1) / blockSize;
+    kernel_scalar_matrix_mult<<<numBlocks, blockSize>>>(scalar_value, *matrix, tam);
 
     // Espera a GPU terminar
     cudaDeviceSynchronize();
 
     // Copia a matrix de device para host
-    cudaError = cudaMemcpy(matrix->h_rows, matrix->d_rows, N*sizeof(float), cudaMemcpyDeviceToHost);
+    cudaError = cudaMemcpy(matrix->h_rows, matrix->d_rows, tam*sizeof(float), cudaMemcpyDeviceToHost);
 
     if (cudaError != cudaSuccess){
         printf("cudaMemcpy (device to host): returned error %s (code %d)\n", cudaGetErrorString(cudaError), cudaError);
