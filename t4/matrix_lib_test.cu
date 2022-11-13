@@ -189,21 +189,21 @@ int main (int argc, char **argv) {
 
     // Multiplicação Escalar ==================================================================================
     
-    //gettimeofday(&start, NULL);
+    gettimeofday(&start, NULL);
 
     if(scalar_matrix_mult(valorEscalar, matrixA) == 0) {
         printf("(Error) Erro na multiplicação escalar\n");
     }
 
-    //gettimeofday(&stop, NULL);
+    gettimeofday(&stop, NULL);
 
     printf("Writing first result: %s\n", arqResult1);
     printf("Executing scalar_matrix_mult(%.1f, matrixA)\n", valorEscalar);
 
     // Show init exec time
     //printf("%f ms\n", timedifference_msec(start, stop));
-    // printa a matriz
 
+    // printa a matriz
     printf("--------Matriz A--------\n");
     for(unsigned long int i = 0; i < matrixA->width * matrixA->height; i++){
         if(i > 256){
@@ -230,17 +230,20 @@ int main (int argc, char **argv) {
     fwrite(arrayAux1, sizeof(arrayAux1), 1024 , file_pointer);
     fclose(file_pointer);
 
-    /*
     // Multiplicação de Matrizes ======================================================================
+
     gettimeofday(&start, NULL);
+
     if(matrix_matrix_mult(matrixA, matrixB, matrixC) == 0) {
         printf("(Error) Erro na multiplicação de matrizes");
     }
     gettimeofday(&stop, NULL);
     printf("Writing second result: %s\n", arqResult2);
     printf("Executing matrix_matrix_mult(matrixA, matrixB, matrixC)\n");
+
     // Show init exec time
-    printf("%f ms\n", timedifference_msec(start, stop));
+    //printf("%f ms\n", timedifference_msec(start, stop));
+
     // printa a matriz
     printf("--------Matriz C--------\n");
     for(unsigned long int i = 0; i < matrixC->width * matrixC->height; i++){
@@ -248,7 +251,7 @@ int main (int argc, char **argv) {
             printf(" -- A matriz passou do limite de 256 -- ");
             break;
         }
-        printf("%.1f ", matrixC->rows[i]);
+        printf("%.1f ", matrixC->h_rows[i]);
     }
     printf("\n");
     // Escreve arquivo binario Result2
@@ -260,7 +263,7 @@ int main (int argc, char **argv) {
     float* arrayAux2;
     arrayAux2 = (float*) malloc(matrixC->height*matrixC->width*sizeof(float)); // Array auxiliar para o fwrite();
     for(i = 0 ; i < tam ; i++){
-        arrayAux2[i] = matrixC->rows[i];
+        arrayAux2[i] = matrixC->h_rows[i];
     }
     fwrite(arrayAux2, sizeof(arrayAux2), 1024 , file_pointer);
     fclose(file_pointer);
@@ -270,8 +273,7 @@ int main (int argc, char **argv) {
         printf("(Error) Erro ao tentar criar o arquivo!\n");
         return 0;
     }
-    */
-
+    
     // TESTE DO ARQUIVO BINÁRIO
     //float matrixTest[tam]; // Array auxiliar para o fread();
     //fread(matrixTest, sizeof(matrixTest), 1, file_pointer);
@@ -282,7 +284,8 @@ int main (int argc, char **argv) {
     //printf("\n");
 
 
-    //gettimeofday(&overall_t2, NULL);
+    gettimeofday(&overall_t2, NULL);
+
     // Show elapsed overall time
     //printf("Overall time: %f ms\n", timedifference_msec(overall_t1, overall_t2));
     
