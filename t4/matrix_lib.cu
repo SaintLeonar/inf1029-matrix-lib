@@ -30,7 +30,7 @@ int scalar_matrix_mult(float scalar_value, Matrix *matrix){
     if (tam == 0 || matrix->d_rows == NULL || matrix->h_rows == NULL) return 0;
     
     // Copia a matrix de host para device
-    cudaError = cudaMemcpy(matrix->d_rows, matrix->h_rows, N*sizeof(float), cudaMemcpyHostToDevice);
+    cudaError = cudaMemcpy(matrix->d_rows, matrix->h_rows, tam*sizeof(float), cudaMemcpyHostToDevice);
 
     if (cudaError != cudaSuccess) {
 	printf("cudaMemcpy (host to device): returned error %s (code %d)\n", cudaGetErrorString(cudaError), cudaError);
