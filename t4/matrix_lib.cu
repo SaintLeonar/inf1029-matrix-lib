@@ -59,14 +59,21 @@ int scalar_matrix_mult(float scalar_value, Matrix *matrix){
 
 __global__
 void kernel_matrix_matrix_mult(Matrix matrixA, Matrix matrixB, Matrix matrixC){
-    int largura = blockIdx.x * blockDim.x + threadIdx.x;
-    int altura = blockIdx.y * blockDim.y + threadIdx.y;
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    int local = blockIdx.x * blockDim.x;
 
-    float soma = 0;
+    unsigned long int tamC;
+    tamC = matrixC.height * matrixC.width;
 
-    if(largura < THREADS_PER_BLOCK && altura < THREADS_PER_BLOCK)
-        for(int i = 0; i < THREADS_PER_BLOCK; i++)
-            matrixC.d_rows[largura * THREADS_PER_BLOCK + altura] += matrixA.d_rows[largura * THREADS_PER_BLOCK + i] * matrixB.d_rows[i * THREADS_PER_BLOCK + altura];
+    for(int i = index; i < tam; i+= local){
+        a = i / matrixC.width;
+        b = i % matrixC.width;
+
+        matrixC.d_rows[i] = 0;
+
+        for(int j = 0; j < matrixA.width; j++)
+            matrixC.d_rows[i] += matrixA.d_rows[a * matrixA.width + j] * matrixB.d_rows[j * matrixB.height + b];
+    }
 }
 
 
