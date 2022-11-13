@@ -17,22 +17,28 @@ Matrix *newMatrix (long int height, long int width){
         return NULL;
     }
 
+    printf("(debug) Alocando host!\n");
+
     // HOST
-    matrix->h_rows = (float *)malloc(tam*sizeof(float));
+    matrix->h_rows = (float *)aligned_alloc(32,2*tam*sizeof(float));
     if(matrix->h_rows == NULL){
         printf("(Error) Erro de memoria insuficiente\n");
         free(matrix);
         return NULL;
     }
 
+    printf("(debug) Alocando device!\n");
+
     // DEVICE
-    cudaError = cudaMalloc((void **) &matrix->d_rows, tam*sizeof(float));
+    cudaError = cudaMalloc(&matrix->d_rows, tam*sizeof(float));
 
     if(cudaError != cudaSuccess){
-        printf("cudaMalloc (device): returned error %s (code %d)\n", cudaGetErrorString(cudaError), cudaError);
+        printf("(error) cudaMalloc (device): returned error %s (code %d)\n", cudaGetErrorString(cudaError), cudaError);
         free(matrix);
         return NULL;
     }
+
+    printf("(debug) Tudo alocado!\n");
 
     matrix->height = height;
     matrix->width = width;
@@ -46,9 +52,6 @@ void initializeMatrix(Matrix *matrix) {
     for(int i = 0 ; i < tam ; i++){
         matrix->h_rows[i] = 0;
     }
-    for(int i = 0 ; i < tam ; i++){
-        matrix->d_rows[i] = 0;
-    }
 }
 
 bool isValidDimension (long int height, long int width){
@@ -61,9 +64,12 @@ bool isValidDimension (long int height, long int width){
 void delMatrix(Matrix *matrix) {
     if(matrix != NULL) {
         // HOST
+        printf("(debug) Liberando host\n");
         free(matrix->h_rows);
         // DEVICE
-        free(matrix->d_rows);
+        printf("(debug) Liberando device\n");
+        cudaFree(matrix->d_rows);
+        printf("(debug) Liberando matrix\n");
         free(matrix);
     }
 }
@@ -119,11 +125,14 @@ int main (int argc, char **argv) {
 
     tam = matrixC->height * matrixC->width;
 
+    printf("(debug) Inicializando Matriz C!\n");
     initializeMatrix(matrixC);
 
     FILE *file_pointer;
 
     // Le arquivos =======================================================================================
+
+    printf("(debug) Populando Matriz A!\n");
 
     // Arquivo 1
     file_pointer = fopen(arqFloats1,"rb");
@@ -134,6 +143,8 @@ int main (int argc, char **argv) {
     // Popula ->rows
     fread(matrixA->h_rows, sizeof(matrixA->h_rows), matrixA->height*matrixA->width, file_pointer);
     fclose(file_pointer);
+
+    printf("(debug) Populando Matriz B!\n");
 
     // Arquivo 2
     file_pointer = fopen(arqFloats2, "rb");
@@ -146,7 +157,6 @@ int main (int argc, char **argv) {
     fclose(file_pointer);
 
     // Printa Matrizes ========================================================================================
-    
     printf("--------Matriz A--------\n");
     for(unsigned long int i = 0; i < tam; i++){
         if(i > 256){
@@ -182,7 +192,7 @@ int main (int argc, char **argv) {
     //gettimeofday(&start, NULL);
 
     if(scalar_matrix_mult(valorEscalar, matrixA) == 0) {
-        printf("(Error) Erro na multiplicação escalar");
+        printf("(Error) Erro na multiplicação escalar\n");
     }
 
     //gettimeofday(&stop, NULL);
@@ -203,6 +213,8 @@ int main (int argc, char **argv) {
         printf("%.1f ", matrixA->h_rows[i]);
     }
     printf("\n");
+
+    printf("(debug) Escrevendo no arquivo Result1\n");
 
     // Escreve arquivo binário Result1
     file_pointer = fopen(arqResult1, "wb");
@@ -274,5 +286,11 @@ int main (int argc, char **argv) {
     // Show elapsed overall time
     //printf("Overall time: %f ms\n", timedifference_msec(overall_t1, overall_t2));
     
+    printf("(debug) Liberando memória\n");
+    delMatrix(matrixA);
+    delMatrix(matrixB);
+    delMatrix(matrixC);
+    printf("(debug) Fim\n");
+
     return 1;
 }
