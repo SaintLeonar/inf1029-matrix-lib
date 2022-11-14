@@ -19,6 +19,25 @@ void kernel_scalar_matrix_mult(float scalar_value, Matrix matrix, unsigned long 
     }
 }
 
+__global__ void kernel(Matrix matrixA, Matrix matrixB, Matrix matrixC){
+    printf("TENTARE\n");
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    int local = blockIdx.x * blockDim.x;
+
+    unsigned long int tamC, a, b;
+    int i;
+    tamC = matrixC.height * matrixC.width;
+
+    for(i = index; i < tamC; i+= local){
+        a = i / matrixC.width;
+        b = i % matrixC.width;
+
+        matrixC.d_rows[i] = 0;
+
+        for(int j = 0; j < matrixA.width; j++)
+            matrixC.d_rows[i] += matrixA.d_rows[a * matrixA.width + j] * matrixB.d_rows[j * matrixB.height + b];
+    }
+}
 
 int scalar_matrix_mult(float scalar_value, Matrix *matrix){
     // declaração de variaveis
@@ -57,26 +76,6 @@ int scalar_matrix_mult(float scalar_value, Matrix *matrix){
   return 1;
 }
 
-__global__
-void kernel_matrix_matrix_mult(Matrix matrixA, Matrix matrixB, Matrix matrixC){
-    int index = blockIdx.x * blockDim.x + threadIdx.x;
-    int local = blockIdx.x * blockDim.x;
-
-    unsigned long int tamC;
-    tamC = matrixC.height * matrixC.width;
-
-    for(int i = index; i < tam; i+= local){
-        a = i / matrixC.width;
-        b = i % matrixC.width;
-
-        matrixC.d_rows[i] = 0;
-
-        for(int j = 0; j < matrixA.width; j++)
-            matrixC.d_rows[i] += matrixA.d_rows[a * matrixA.width + j] * matrixB.d_rows[j * matrixB.height + b];
-    }
-}
-
-
 int matrix_matrix_mult(Matrix *matrixA, Matrix * matrixB, Matrix * matrixC){
 
     int blockSize, numBlocks;
@@ -104,18 +103,20 @@ int matrix_matrix_mult(Matrix *matrixA, Matrix * matrixB, Matrix * matrixC){
         return 0;
     }
 
-   blockSize = THREADS_PER_BLOCK;
-   numBlocks = (tamC + blockSize - 1) / blockSize;
-   kernel_matrix_matrix_mult<<<numBlocks, blockSize>>>(*matrixA, *matrixB, *matrixC);
-
+    blockSize = THREADS_PER_BLOCK;
+    numBlocks = (tamC + blockSize - 1) / blockSize;
+    printf("Outra coiusa\n");
+    kernel<<<numBlocks, blockSize>>>(*matrixA, *matrixB, *matrixC);
+    printf("aaaaaaaaaaa\n");
+    
     cudaDeviceSynchronize();
-
+    
     cudaError = cudaMemcpy(matrixC->h_rows, matrixC->d_rows, tamC*sizeof(float), cudaMemcpyDeviceToHost);
 
     if (cudaError != cudaSuccess)
     {
         printf("cudaMemcpy - C (device to host): returned error %s (code %d), line(%d)\n", cudaGetErrorString(cudaError), cudaError, __LINE__);
-        return 1;
+        return 0;
     }
 
   return 1;
