@@ -20,22 +20,22 @@ void kernel_scalar_matrix_mult(float scalar_value, Matrix matrix, unsigned long 
 }
 
 __global__ void kernel(Matrix matrixA, Matrix matrixB, Matrix matrixC){
-    printf("TENTARE\n");
     int index = blockIdx.x * blockDim.x + threadIdx.x;
-    int local = blockIdx.x * blockDim.x;
+    int local = blockDim.x * gridDim.x;
+    int posicao;
 
-    unsigned long int tamC, a, b;
-    int i;
+    unsigned long int i, j, k, tamC;
+
     tamC = matrixC.height * matrixC.width;
 
-    for(i = index; i < tamC; i+= local){
-        a = i / matrixC.width;
-        b = i % matrixC.width;
+    for (posicao = index; posicao <  tamC; posicao += local) {
+    	i = posicao / matrixC.width;
+    	j = posicao % matrixC.width;
 
-        matrixC.d_rows[i] = 0;
+	matrixC.d_rows[posicao] = 0;
 
-        for(int j = 0; j < matrixA.width; j++)
-            matrixC.d_rows[i] += matrixA.d_rows[a * matrixA.width + j] * matrixB.d_rows[j * matrixB.height + b];
+	for (k = 0; k < matrixA.width; ++k) 
+		matrixC.d_rows[posicao] += matrixA.d_rows[(i * matrixA.width) + k] * matrixB.d_rows[(k * matrixB.height) + j];
     }
 }
 
@@ -105,9 +105,9 @@ int matrix_matrix_mult(Matrix *matrixA, Matrix * matrixB, Matrix * matrixC){
 
     blockSize = THREADS_PER_BLOCK;
     numBlocks = (tamC + blockSize - 1) / blockSize;
-    printf("Outra coiusa\n");
+    
     kernel<<<numBlocks, blockSize>>>(*matrixA, *matrixB, *matrixC);
-    printf("aaaaaaaaaaa\n");
+    
     
     cudaDeviceSynchronize();
     
