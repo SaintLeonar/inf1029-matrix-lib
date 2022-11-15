@@ -2,10 +2,13 @@
 #include <cuda_runtime.h>
 #include "matrix_lib.h"
 
-#define THREADS_PER_BLOCK 256
+int blockSize = 256;
+int numBlocks = 4096;
 
 int set_grid_size(int threads_per_block, int max_blocks_per_grid){
 
+    blockSize = threads_per_block;
+    numBlocks = max_blocks_per_grid;
     return 1;
 }
 
@@ -24,7 +27,7 @@ __global__ void kernel(Matrix matrixA, Matrix matrixB, Matrix matrixC){
     int local = blockDim.x * gridDim.x;
     int posicao;
 
-    unsigned long int i, j, k, tamC;
+    unsigned long int tamC, i, j, k;
 
     tamC = matrixC.height * matrixC.width;
 
@@ -42,7 +45,6 @@ __global__ void kernel(Matrix matrixA, Matrix matrixB, Matrix matrixC){
 int scalar_matrix_mult(float scalar_value, Matrix *matrix){
     // declaração de variaveis
     cudaError_t cudaError;
-    int blockSize, numBlocks;
     unsigned long int tam;
     tam = matrix->height * matrix->width;
 
@@ -57,9 +59,6 @@ int scalar_matrix_mult(float scalar_value, Matrix *matrix){
         return 0;
     }
 
-    // Inicia o Kernel
-    blockSize = THREADS_PER_BLOCK;
-    numBlocks = (tam + blockSize - 1) / blockSize;
     kernel_scalar_matrix_mult<<<numBlocks, blockSize>>>(scalar_value, *matrix, tam);
 
     // Espera a GPU terminar
@@ -77,10 +76,7 @@ int scalar_matrix_mult(float scalar_value, Matrix *matrix){
 }
 
 int matrix_matrix_mult(Matrix *matrixA, Matrix * matrixB, Matrix * matrixC){
-
-    int blockSize, numBlocks;
     cudaError_t cudaError;
-
     unsigned long int tamA, tamB, tamC;
 
     tamA = matrixA->width * matrixA->height;
@@ -102,9 +98,6 @@ int matrix_matrix_mult(Matrix *matrixA, Matrix * matrixB, Matrix * matrixC){
 	printf("cudaMemcpy - B (host to device): returned error %s (code %d)\n", cudaGetErrorString(cudaError), cudaError);
         return 0;
     }
-
-    blockSize = THREADS_PER_BLOCK;
-    numBlocks = (tamC + blockSize - 1) / blockSize;
     
     kernel<<<numBlocks, blockSize>>>(*matrixA, *matrixB, *matrixC);
     
