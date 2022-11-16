@@ -6,7 +6,6 @@ int blockSize = 256;
 int numBlocks = 4096;
 
 int set_grid_size(int threads_per_block, int max_blocks_per_grid){
-
     blockSize = threads_per_block;
     numBlocks = max_blocks_per_grid;
     return 1;

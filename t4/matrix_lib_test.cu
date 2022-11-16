@@ -6,6 +6,11 @@
 #include "matrix_lib.h"
 #include "timer.h"
 
+float timedifference_msec(struct timeval t0, struct timeval t1)
+{
+return (t1.tv_sec - t0.tv_sec) * 1000.0f + (t1.tv_usec - t0.tv_usec) / 1000.0f;
+}
+
 Matrix *newMatrix (long int height, long int width){
 
     long int tam = height * width;
@@ -105,6 +110,7 @@ int main (int argc, char **argv) {
 
     // Timer
     struct timeval start, stop, overall_t1, overall_t2;
+     // Mark overall start time
     gettimeofday(&overall_t1, NULL);
 
     // Variáveis =======================================================================================
@@ -189,19 +195,18 @@ int main (int argc, char **argv) {
 
     // Multiplicação Escalar ==================================================================================
     
+     // Mark init start time
     gettimeofday(&start, NULL);
-
     if(scalar_matrix_mult(valorEscalar, matrixA) == 0) {
         printf("(Error) Erro na multiplicação escalar\n");
     }
-
+     // Mark init stop time
     gettimeofday(&stop, NULL);
 
     printf("Writing first result: %s\n", arqResult1);
     printf("Executing scalar_matrix_mult(%.1f, matrixA)\n", valorEscalar);
-
     // Show init exec time
-    //printf("%f ms\n", timedifference_msec(start, stop));
+    printf("%f ms\n", timedifference_msec(start, stop));
 
     // printa a matriz
     printf("--------Matriz A--------\n");
@@ -242,7 +247,7 @@ int main (int argc, char **argv) {
     printf("Executing matrix_matrix_mult(matrixA, matrixB, matrixC)\n");
 
     // Show init exec time
-    //printf("%f ms\n", timedifference_msec(start, stop));
+    printf("%f ms\n", timedifference_msec(start, stop));
 
     // printa a matriz
     printf("--------Matriz C--------\n");
@@ -286,8 +291,8 @@ int main (int argc, char **argv) {
 
     gettimeofday(&overall_t2, NULL);
 
-    // Show elapsed overall time
-    //printf("Overall time: %f ms\n", timedifference_msec(overall_t1, overall_t2));
+    //Show elapsed overall time
+    printf("Overall time: %f ms\n", timedifference_msec(overall_t1, overall_t2));
     
     printf("(debug) Liberando memória\n");
     delMatrix(matrixA);
